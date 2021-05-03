@@ -36,9 +36,22 @@ function Send-DhcpPacket {
         # UDP Port 68 (Server-to-Client)
         $ClientEndPoint = [Net.EndPoint](New-Object Net.IPEndPoint([IPAddress]::Any, 68))
 
-        $UdpClient = [UdpClient]::new($ClientEndPoint)
+        # Create UDP socket
+        $UdpClient = [UdpClient]::new()
+
+        # Set socket options
         $UdpClient.EnableBroadcast = $true
+        $UdpClient.ExclusiveAddressUse = $false
         $UdpClient.Client.ReceiveTimeout = $Timeout * 1000
+        # Workaround for the issue that the UdpClient socket option SO_REUSEADDR is not set correctly on Linux.
+        # https://github.com/dotnet/runtime/issues/27274#issuecomment-528210926
+        if ($IsLinux) {
+            $UdpClient.Client.SetSocketOption([SocketOptionLevel]::Socket, [SocketOptionName]::ReuseAddress, $true)
+            Set-REUSEADDR -Socket $UdpClient
+        }
+
+        # Bind local endpoint
+        $UdpClient.Client.Bind($ClientEndPoint)
 
         # Send the packet
         $BytesSent = $UdpClient.Send($Packet, $Packet.Length, $ServerEndPoint)
@@ -439,6 +452,39 @@ function Read-DhcpPacket {
         Write-Error -Exception $_.Exception
     }
     return $DhcpResponse
+}
+
+function Set-REUSEADDR {
+    param (
+        [UdpClient]$Socket
+    )
+
+    try {
+        $null = ([SocketFix] -is [type])
+    }
+    catch {
+        Add-Type -TypeDefinition @'
+using System.Runtime.InteropServices;
+
+public class SocketFix
+{
+    public unsafe static int SetREUSEADDR(int socket){
+        int value = 1;
+        return SocketFix.setsockopt(socket, 1, 2, &value, sizeof(int));
+    }
+
+    [DllImport("libc", SetLastError = true)]
+    private unsafe static extern int setsockopt(int socket, int level, int option_name, void* option_value, uint option_len);
+}
+'@ -Language CSharp -CompilerOptions @('/unsafe')
+    }
+
+    try {
+        $null = [SocketFix]::SetREUSEADDR($Socket.Client.Handle.ToInt32())
+    }
+    catch {
+        Write-Error -Exception $_.Exception
+    }
 }
 
 Export-ModuleMember -Function @(

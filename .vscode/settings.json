@@ -1,0 +1,13 @@
+{
+    "files.trimTrailingWhitespace": true,
+    "powershell.codeFormatting.useCorrectCasing": true,
+    "editor.formatOnSave": true,
+    "files.encoding": "utf8",
+    "files.insertFinalNewline": true,
+    "[powershell]": {
+        "files.encoding": "utf8bom"
+    },
+    "[markdown]": {
+        "files.trimTrailingWhitespace": false
+    }
+}

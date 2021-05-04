@@ -64,6 +64,7 @@ function Send-DhcpPacket {
                 $BytesReceived = $UdpClient.Receive([ref]$ClientEndPoint)
                 if ($BytesReceived.Length -gt 0) {
                     Write-Verbose ('{0} bytes packet was received.' -f $BytesReceived.Length)
+                    # DHCP packet should be grater equal 240 bytes.
                     if ($BytesReceived.Length -ge 240) {
                         $DhcpPacket = Read-DhcpPacket $BytesReceived
                         Write-Verbose 'Parsing DHCP packet succeeded.'
@@ -129,6 +130,7 @@ function Invoke-DhcpDiscover {
         [byte[]]$ParameterRequestList,
 
         [Parameter()]
+        [ValidateRange(1, 255)]
         [byte]$Timeout = 10,
 
         [Parameter()]
@@ -196,6 +198,7 @@ function Invoke-DhcpRequest {
         [byte[]]$ParameterRequestList,
 
         [Parameter()]
+        [ValidateRange(1, 255)]
         [byte]$Timeout = 10
     )
 
@@ -306,6 +309,7 @@ function Invoke-DhcpCustomMessage {
         [ipaddress]$ServerIPAddress = [ipaddress]::Broadcast,
 
         [Parameter()]
+        [ValidateRange(1, 255)]
         [byte]$Timeout = 10,
 
         [Parameter(ParameterSetName = 'LongPoll')]

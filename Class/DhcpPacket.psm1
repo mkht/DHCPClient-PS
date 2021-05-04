@@ -147,8 +147,8 @@ class DhcpPacket {
         $DhcpResponse.CHAddr = [PhysicalAddress]::new(($Reader.ReadBytes(16))[0..5])
 
         # SName & File
-        $DhcpResponse.SName = [string]::new($Reader.ReadChars(64)).TrimEnd()
-        $DhcpResponse.File = [string]::new($Reader.ReadChars(128)).TrimEnd()
+        $DhcpResponse.SName = [string]::new($Reader.ReadChars(64)).Trim("`0").TrimEnd()
+        $DhcpResponse.File = [string]::new($Reader.ReadChars(128)).Trim("`0").TrimEnd()
 
         # MagicCookie
         $DhcpResponse.MagicCookie = $Reader.ReadBytes(4)

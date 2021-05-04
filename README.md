@@ -44,29 +44,29 @@ Options     : {@{OptionCode=1; Name=SubnetMask; Value=255.255.255.0; Length=4}..
 
 #### Parameters
 
-* **`-MacAddress`**  [string]
+* **`-MacAddress`**  [string]  
 Specifies MAC address for the request.  
 Default: `AA-BB-CC-DD-EE-FF`
 
-* **`-RequestIPAddress`**  [System.Net.IPAddress]
+* **`-RequestIPAddress`**  [IPAddress]  
 Specifies IP address that the client requests to be assigned.  
 This is corresponding to DHCP option 50.
 
-* **`-ClientId`**  [byte[]]
+* **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP option 61.  
 Default: The value of MAC address.
 
-* **`-ParameterRequestList`**  [byte[]]
+* **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
 This is corresponding to DHCP option 55.  
 Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
 
-* **`-Timeout`**  [byte]
+* **`-Timeout`**  [byte]  
 Specifies how long seconds to wait until a response is received.  
 Default: 10
 
-* **`-LongPoll`**  [switch]
+* **`-LongPoll`**  [switch]  
 By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
 
 #### Outputs
@@ -95,31 +95,31 @@ PS> Invoke-DhcpDiscover | Invoke-DhcpRequest
 
 #### Parameters
 
-* **`-MacAddress`**  [string]
+* **`-MacAddress`**  [string]  
 Specifies MAC address for the request.  
 This is mandatory parameter.
 
-* **`-RequestIPAddress`**  [System.Net.IPAddress]
+* **`-RequestIPAddress`**  [IPAddress]  
 Specifies IP address that the client requests to be assigned.  
 This is corresponding to DHCP option 50.  
 This is mandatory parameter.
 
-* **`-ServerIPAddress`**  [System.Net.IPAddress]
+* **`-ServerIPAddress`**  [IPAddress]  
 Specifies DHCP server address.  
 This is corresponding to DHCP option 54.  
 This is mandatory parameter.
 
-* **`-ClientId`**  [byte[]]
+* **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP option 61.  
 Default: The value of MAC address.
 
-* **`-ParameterRequestList`**  [byte[]]
+* **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
 This is corresponding to DHCP option 55.  
 Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
 
-* **`-Timeout`**  [byte]
+* **`-Timeout`**  [byte]  
 Specifies how long seconds to wait until a response is received.  
 Default: 10
 
@@ -143,19 +143,19 @@ PS> $AckResponse | Invoke-DhcpRelease
 
 #### Parameters
 
-* **`-MacAddress`**  [string]
+* **`-MacAddress`**  [string]  
 Specifies MAC address for the request.  
 This is mandatory parameter.
 
-* **`-ClientIPAddress`**  [System.Net.IPAddress]
+* **`-ClientIPAddress`**  [IPAddress]  
 Specifies IP address that the client requests to be released.  
 This is mandatory parameter.
 
-* **`-ServerIPAddress`**  [System.Net.IPAddress]
+* **`-ServerIPAddress`**  [IPAddress]  
 Specifies DHCP server address.  
 This is mandatory parameter.
 
-* **`-ClientId`**  [byte[]]
+* **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP option 61.  
 Default: The value of MAC address.
@@ -182,22 +182,22 @@ PS> $Response = $Message | Invoke-DhcpCustomMessage
 
 #### Parameters
 
-* **`-DhcpPacket`**  [[DhcpPacket](#About-DhcpPacket-class)]
-Specifies DHCP packet object that is created by `New-DhcpPacket`.
+* **`-DhcpPacket`**  [[DhcpPacket](#About-DhcpPacket-class)]  
+Specifies DHCP packet object that is created by `New-DhcpPacket`.  
 This is mandatory parameter.
 
-* **`-ServerIPAddress`**  [System.Net.IPAddress]
-Specifies IP address to the message will be sent.
+* **`-ServerIPAddress`**  [IPAddress]  
+Specifies IP address to the message will be sent.  
 Default: `255.255.255.255` (Broadcast address)
 
-* **`-Timeout`**  [byte]
-Specifies how long seconds to wait until a response is received.
+* **`-Timeout`**  [byte]  
+Specifies how long seconds to wait until a response is received.  
 Default: 10
 
-* **`-LongPoll`**  [switch]
+* **`-LongPoll`**  [switch]  
 By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
 
-* **`-NoReceive`**  [switch]
+* **`-NoReceive`**  [switch]  
 If this switch is specified, this function will only send a message and not trying to receive any response.
 
 #### Outputs
@@ -221,34 +221,34 @@ PS> $Message = New-DhcpPacket -Type DHCPDISCOVER -TransactionId (0,1,2,3) -MacAd
 
 #### Parameters
 
-* **`-Type`**  [string]
-Specifies DHCP message type.
-You can select from `DHCPDISCOVER`, `DHCPOFFER`, `DHCPREQUEST`, `DHCPDECLINE`, `DHCPACK`, `DHCPNAK`, `DHCPRELEASE`, `DHCPINFORM`, `DHCPFORCERENEW`
+* **`-Type`**  [string]  
+Specifies DHCP message type.  
+You can select from `DHCPDISCOVER`, `DHCPOFFER`, `DHCPREQUEST`, `DHCPDECLINE`, `DHCPACK`, `DHCPNAK`, `DHCPRELEASE`, `DHCPINFORM`, `DHCPFORCERENEW`  
 This is mandatory parameter.
 
-* **`-TransactionId`**  [byte[]]
-Specifies transaction ID (xid) as 4-length byte array.
+* **`-TransactionId`**  [byte[]]  
+Specifies transaction ID (xid) as 4-length byte array.  
 If does not specified, random number will set.
 
-* **`-MacAddress`**  [string]
-Specifies MAC address for the request.
+* **`-MacAddress`**  [string]  
+Specifies MAC address for the request.  
 Default: `AA-BB-CC-DD-EE-FF`
 
-* **`-ServerIPAddress`**  [System.Net.IPAddress]
-Specifies DHCP server address.
+* **`-ServerIPAddress`**  [IPAddress]  
+Specifies DHCP server address.  
 Default: `0.0.0.0` (Any address)
 
-* **`-ClientId`**  [byte[]]
-Specifies the client-identifier value.
-This is corresponding to DHCP option 61.
+* **`-ClientId`**  [byte[]]  
+Specifies the client-identifier value.  
+This is corresponding to DHCP option 61.  
 Default: The value of MAC address.
 
-* **`-ParameterRequestList`**  [byte[]]
-Specifies request values for configuration parameters.
+* **`-ParameterRequestList`**  [byte[]]  
+Specifies request values for configuration parameters.  
 This is corresponding to DHCP option 55.
 
-* **`-Options`**  [HashTable]
-Specifies DHCP configuration option parameters.
+* **`-Options`**  [HashTable]  
+Specifies DHCP configuration option parameters.  
 You should specify the param as hashtable that the key as option number and value as bytes. (See example)
 
 

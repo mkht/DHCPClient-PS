@@ -4,6 +4,7 @@ using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
 using module '.\Class\DhcpPacket.psm1'
 using module '.\Class\DhcpDiscoverPacket.psm1'
+using module '.\Class\DhcpInformPacket.psm1'
 using module '.\Class\DhcpRequestPacket.psm1'
 using module '.\Class\DhcpReleasePacket.psm1'
 
@@ -129,6 +130,9 @@ function Invoke-DhcpDiscover {
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [byte[]]$ParameterRequestList,
 
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [bool]$BroadcastFlag = $false,
+
         [Parameter()]
         [ValidateRange(1, 255)]
         [byte]$Timeout = 10,
@@ -140,6 +144,7 @@ function Invoke-DhcpDiscover {
     [PhysicalAddress]$_MacAddress = [PhysicalAddress]::Parse($MacAddress.Trim().ToUpper() -replace '[\.:-]')
 
     $Discover = [DhcpDiscoverPacket]::new($_MacAddress)
+    $Discover.BroadcastFlag = $BroadcastFlag
 
     if ($PSBoundParameters.ContainsKey('RequestIPAddress')) {
         $Discover.RequestedIPAddress = $RequestIPAddress
@@ -164,6 +169,97 @@ function Invoke-DhcpDiscover {
 
     $Message = $Discover.GetPacketBytes()
     Send-DhcpPacket -Packet $Message -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll
+}
+
+function Invoke-DhcpInform {
+    [CmdletBinding(DefaultParameterSetName = 'Packet')]
+    [OutputType([DhcpPacket])]
+    param (
+        # DHCP Ack packet
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true , ParameterSetName = 'Packet')]
+        [ValidateNotNull()]
+        [DhcpPacket]$DhcpAckPacket,
+
+        # Client MAC Address (option)
+        [Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [ValidateScript( { ($_.Trim().ToUpper() -replace '[\.:-]') -as [PhysicalAddress] })]
+        [string]$MacAddress = 'AABBCCDDEEFF',
+
+        # Client IP address (mandatory)
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [ipaddress]$ClientIPAddress,
+
+        # DHCP Server IP address (option)
+        [Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [ipaddress]$ServerIPAddress = [ipaddress]::Any,
+
+        # Client-identifier (option)
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [byte[]]$ClientId,
+
+        # Parameter request list (option)
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [byte[]]$ParameterRequestList,
+
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [bool]$BroadcastFlag = $false,
+
+        [Parameter()]
+        [ValidateRange(1, 255)]
+        [byte]$Timeout = 10,
+
+        [Parameter()]
+        [switch]$LongPoll
+    )
+
+    if ($PSCmdlet.ParameterSetName -eq 'Packet') {
+        $p = @{
+            YIAddr = $DhcpAckPacket.YIAddr
+            CHAddr = $DhcpAckPacket.CHAddr
+            SIAddr = if ($sid = $DhcpAckPacket._DhcpOptionsList[[DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
+        }
+        $ServerIPAddress = $p.SIAddr
+        $Inform = [DhcpInformPacket]::new($Offer.YIAddr, $Offer.SIAddr, $Offer.CHAddr)
+    }
+    else {
+        [PhysicalAddress]$_MacAddress = [PhysicalAddress]::Parse($MacAddress.Trim().ToUpper() -replace '[\.:-]')
+        if ($PSBoundParameters.ContainsKey('ServerIPAddress')) {
+            $Inform = [DhcpInformPacket]::new($ClientIPAddress, $ServerIPAddress, $_MacAddress)
+        }
+        else {
+            $Inform = [DhcpInformPacket]::new($ClientIPAddress, $_MacAddress)
+        }
+    }
+
+    $Inform.BroadcastFlag = $BroadcastFlag
+
+    if ($PSBoundParameters.ContainsKey('ClientId')) {
+        $Inform.AddDhcpOptions(
+            [DhcpOptionObject]::new(
+                [DhcpOption]::ClientId,
+                $ClientId
+            )
+        )
+    }
+
+    if ($PSBoundParameters.ContainsKey('ParameterRequestList')) {
+        $Inform.ParameterRequestList = $ParameterRequestList
+    }
+
+    Write-Verbose 'Trying to send a DHCP Inform packet.'
+    Write-Verbose ('MsgType:{0} | ClientIP:{1} | ServerIP:{2} | ClientMAC:{3}' -f `
+            $Inform.MessageType, $Inform.ClientIPAddress, $Inform.ServerIPAddress, ($Inform.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
+
+    if ($ServerIPAddress -eq [ipaddress]::Any) {
+        $SendTo = [IPAddress]::Broadcast
+    }
+    else {
+        $SendTo = $ServerIPAddress
+    }
+
+    $Message = $Inform.GetPacketBytes()
+    Send-DhcpPacket -Packet $Message -Timeout $Timeout -Server $SendTo -LongPoll:$LongPoll
 }
 
 function Invoke-DhcpRequest {
@@ -197,6 +293,9 @@ function Invoke-DhcpRequest {
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [byte[]]$ParameterRequestList,
 
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [bool]$BroadcastFlag = $false,
+
         [Parameter()]
         [ValidateRange(1, 255)]
         [byte]$Timeout = 10
@@ -214,6 +313,8 @@ function Invoke-DhcpRequest {
         [PhysicalAddress]$_MacAddress = [PhysicalAddress]::Parse($MacAddress.Trim().ToUpper() -replace '[\.:-]')
         $Request = [DhcpRequestPacket]::new($RequestIPAddress, $ServerIPAddress, $_MacAddress)
     }
+
+    $Request.BroadcastFlag = $BroadcastFlag
 
     if ($PSBoundParameters.ContainsKey('ClientId')) {
         $Request.AddDhcpOptions(
@@ -358,12 +459,18 @@ function New-DhcpPacket {
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [byte[]]$ParameterRequestList,
 
-        [Parameter(ValueFromPipelineByPropertyName)]
-        [HashTable]$Options
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [HashTable]$Options,
+
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [bool]$BroadcastFlag = $false
     )
 
     $DhcpPacket = [DhcpPacket]::new()
     $DhcpPacket.MessageType = $Type
+
+    # Broadcast flag
+    $DhcpPacket.BroadcastFlag = $BroadcastFlag
 
     # XID
     if ($PSBoundParameters.ContainsKey('TransactionId')) {
@@ -493,6 +600,7 @@ public class SocketFix
 
 Export-ModuleMember -Function @(
     'Invoke-DhcpDiscover'
+    'Invoke-DhcpInform'
     'Invoke-DhcpRequest'
     'Invoke-DhcpRelease'
     'Invoke-DhcpCustomMessage'

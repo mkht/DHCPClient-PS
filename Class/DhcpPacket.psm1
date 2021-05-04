@@ -111,6 +111,15 @@ class DhcpPacket {
                 [DhcpOptionObject]::new([DhcpOption]::DHCPMessageType, $MsgType)
             )
         }
+
+        $this | Add-Member ScriptProperty 'BroadcastFlag' {
+            # Getter
+            [bool]($this.Flags -eq 128)
+        } {
+            Param([bool]$flag)
+            # Setter
+            if ($flag) { $this.Flags = 128 }else { $this.Flags = 0 }
+        }
     }
 
     [void]AddDhcpOptions([DhcpOptionObject[]]$Options) {

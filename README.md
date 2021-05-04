@@ -2,7 +2,7 @@
 
 ## Description
 PowerShell DHCP Client module for testing purpose.  
-This module can broadcast DHCP discover, request, and release packets with arbitrary parameters, and receive responses from servers. You can test the health of DHCP servers or check for the presence of multiple DHCP servers in a subnet.
+This module can broadcast DHCP discover, inform, request, and release packets with arbitrary parameters, and receive responses from servers. You can test the health of DHCP servers or check for the presence of multiple DHCP servers in a subnet.
 
 ## Install
 You can install the module from PowerShell Gallery.
@@ -18,6 +18,7 @@ Install-Module -Name DHCPClient-PS
 ## Usage
 
 - [Invoke-DhcpDiscover](#Invoke-DhcpDiscover)
+- [Invoke-DhcpInform](#Invoke-DhcpInform)
 - [Invoke-DhcpRequest](#Invoke-DhcpRequest)
 - [Invoke-DhcpRelease](#Invoke-DhcpRelease)
 - [Invoke-DhcpCustomMessage](#Invoke-DhcpCustomMessage)
@@ -61,6 +62,65 @@ Default: The value of MAC address.
 Specifies request values for configuration parameters.  
 This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).  
 Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
+
+* **`-BroadcastFlag`**  [bool]  
+Specifies the flag to request the server to broadcast a reply.  
+Default: `False`
+
+* **`-Timeout`**  [byte]  
+Specifies how long seconds to wait until a response is received.  
+Default: 10
+
+* **`-LongPoll`**  [switch]  
+By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
+
+#### Outputs
+[DhcpPacket](#About-DhcpPacket-class) object
+
+----
+### Invoke-DhcpInform
+Send DHCP Inform message, then receive ACK messages from DHCP server(s).  
+
+#### Examples
+```PowerShell
+PS> $CurrentIP = (Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex 15).IPAddress
+PS> $Response =  Invoke-DhcpInform -ClientIPAddress $CurrentIP -ServerIPAddress '192.168.0.1' -MacAddress 'ABCDEF012345'
+PS> $Response | Select-Object MessageType, CIAddr, CHAddr, Options
+
+MessageType : DHCPACK
+CIAddr      : 192.168.0.8
+SIAddr      : 192.168.0.1
+CHAddr      : ABCDEF012345
+Options     : {@{OptionCode=1; Name=SubnetMask; Value=255.255.255.0; Length=4}...}
+```
+
+#### Parameters
+
+* **`-MacAddress`**  [string]  
+Specifies MAC address for the request.  
+Default: `AA-BB-CC-DD-EE-FF`
+
+* **`-ClientIPAddress`**  [IPAddress]  
+Specifies Client IP address.  
+This is mandatory parameter.
+
+* **`-ServerIPAddress`**  [IPAddress]  
+Specifies DHCP server address.  
+Default: `0.0.0.0` (Any)
+
+* **`-ClientId`**  [byte[]]  
+Specifies the client-identifier value.  
+This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
+Default: The value of MAC address.
+
+* **`-ParameterRequestList`**  [byte[]]  
+Specifies request values for configuration parameters.  
+This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).  
+Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
+
+* **`-BroadcastFlag`**  [bool]  
+Specifies the flag to request the server to broadcast a reply.  
+Default: `False`
 
 * **`-Timeout`**  [byte]  
 Specifies how long seconds to wait until a response is received.  
@@ -118,6 +178,10 @@ Default: The value of MAC address.
 Specifies request values for configuration parameters.  
 This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).  
 Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
+
+* **`-BroadcastFlag`**  [bool]  
+Specifies the flag to request the server to broadcast a reply.  
+Default: `False`
 
 * **`-Timeout`**  [byte]  
 Specifies how long seconds to wait until a response is received.  
@@ -251,6 +315,10 @@ This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#se
 Specifies DHCP configuration option parameters.  
 You should specify the param as hashtable that the key as option number and value as bytes. (See example)
 
+* **`-BroadcastFlag`**  [bool]  
+Specifies the flag to request the server to broadcast a reply.  
+Default: `False`
+
 
 #### Outputs
 [DhcpPacket](#About-DhcpPacket-class) object
@@ -285,6 +353,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 |MagicCookie|[byte[]]|Magic cookie, Should be `0x63, 0x82, 0x53, 0x63`|
 |MessageType|[byte]|DHCP Message type|
 |Options|[List<[byte], [byte[]]>]|DHCP Configuration Options (Read-only).|
+|BroadcastFlag|[bool]|Flag to request a broadcast response from the server.|
 
 #### Methods
 |Name|Return type|Description|
@@ -294,5 +363,9 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **1.1.0**
+  - Add `Invoke-DhcpInform` function
+  - Allow the broadcast flag to be specified. (`-BroadcastFlag` parameter)
+
 + **1.0.0**
   - First public release

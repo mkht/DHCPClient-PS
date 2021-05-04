@@ -50,16 +50,16 @@ Default: `AA-BB-CC-DD-EE-FF`
 
 * **`-RequestIPAddress`**  [IPAddress]  
 Specifies IP address that the client requests to be assigned.  
-This is corresponding to DHCP option 50.
+This is corresponding to DHCP [option 50](https://tools.ietf.org/html/rfc2132#section-9.1).
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
-This is corresponding to DHCP option 61.  
+This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
 
 * **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
-This is corresponding to DHCP option 55.  
+This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).  
 Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
 
 * **`-Timeout`**  [byte]  
@@ -101,22 +101,22 @@ This is mandatory parameter.
 
 * **`-RequestIPAddress`**  [IPAddress]  
 Specifies IP address that the client requests to be assigned.  
-This is corresponding to DHCP option 50.  
+This is corresponding to DHCP [option 50](https://tools.ietf.org/html/rfc2132#section-9.1).  
 This is mandatory parameter.
 
 * **`-ServerIPAddress`**  [IPAddress]  
 Specifies DHCP server address.  
-This is corresponding to DHCP option 54.  
+This is corresponding to DHCP [option 54](https://tools.ietf.org/html/rfc2132#section-9.7).  
 This is mandatory parameter.
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
-This is corresponding to DHCP option 61.  
+This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
 
 * **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
-This is corresponding to DHCP option 55.  
+This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).  
 Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
 
 * **`-Timeout`**  [byte]  
@@ -157,7 +157,7 @@ This is mandatory parameter.
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
-This is corresponding to DHCP option 61.  
+This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
 
 #### Outputs
@@ -240,12 +240,12 @@ Default: `0.0.0.0` (Any address)
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
-This is corresponding to DHCP option 61.  
+This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
 
 * **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
-This is corresponding to DHCP option 55.
+This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).
 
 * **`-Options`**  [HashTable]  
 Specifies DHCP configuration option parameters.  
@@ -264,7 +264,7 @@ You should specify the param as hashtable that the key as option number and valu
 This class is not published as public. You should create instance by `New-DhcpPacket` function.
 
 #### Members
-Most of the members correspond to the structure of a DHCP packet. See RFC 2131 for details.
+Most of the members correspond to the structure of a DHCP packet. See [RFC 2131](https://tools.ietf.org/html/rfc2131) for details.
 
 |Name|Type|Description|
 |:----|:----|:----|

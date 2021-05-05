@@ -363,6 +363,9 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **1.1.3**
+  - Fixed: The number of seconds larger than the `[Int32]::MaxValue` is not parsed correctly.
+
 + **1.1.2**
   - Fixed: `Invoke-DhcpInform` with pipeline input does not function.
 

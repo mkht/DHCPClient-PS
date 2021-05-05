@@ -5,7 +5,7 @@ PowerShell DHCP Client module for testing purpose.
 This module can broadcast DHCP discover, inform, request, and release packets with arbitrary parameters, and receive responses from servers. You can test the health of DHCP servers or check for the presence of multiple DHCP servers in a subnet.
 
 ## Install
-You can install the module from PowerShell Gallery.
+You can install the module from [PowerShell Gallery](https://www.powershellgallery.com/packages/DHCPClient-PS).
 
 ```PowerShell
 Install-Module -Name DHCPClient-PS

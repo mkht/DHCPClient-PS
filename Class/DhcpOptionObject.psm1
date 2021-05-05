@@ -75,12 +75,9 @@ Class DhcpOptionObject {
                 }
                 { $_ -in ('IPAddressLeaseTime', 'RenewalTime', 'RebindingTime', 'ARPTimeout') } {
                     # TimeSpan
-                    # Read as Big Endian
-                    $BigEndian = ($Value[0] * [Math]::Pow(256, 3)) +
-                    ($Value[1] * [Math]::Pow(256, 2)) +
-                    ($Value[2] * 256) +
-                    $Value[3]
-                    return New-TimeSpan -Seconds $BigEndian
+                    # Convert big endian order bytes to Int32 seconds
+                    $Seconds = [ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt32($Value, 0))
+                    return [timespan]::new(0, 0, $Seconds)
                 }
                 DHCPMessageType {
                     return ($Value[0] -as [DhcpMessageType])

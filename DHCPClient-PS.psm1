@@ -1,4 +1,4 @@
-using namespace System.Net.Sockets
+﻿using namespace System.Net.Sockets
 
 using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
@@ -113,24 +113,24 @@ function Invoke-DhcpDiscover {
     [OutputType([DhcpPacket])]
     param (
         # Client MAC Address
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [ValidateScript( { ($_.Trim().ToUpper() -replace '[\.:-]') -as [PhysicalAddress] })]
         [string]$MacAddress = 'AABBCCDDEEFF',
 
         # Request IP address (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [ipaddress]$RequestIPAddress,
 
         # Client-identifier (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [byte[]]$ClientId,
 
         # Parameter request list (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [byte[]]$ParameterRequestList,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [bool]$BroadcastFlag = $false,
 
         [Parameter()]
@@ -172,7 +172,7 @@ function Invoke-DhcpDiscover {
 }
 
 function Invoke-DhcpInform {
-    [CmdletBinding(DefaultParameterSetName = 'Packet')]
+    [CmdletBinding(DefaultParameterSetName = 'Property')]
     [OutputType([DhcpPacket])]
     param (
         # DHCP Ack packet
@@ -181,28 +181,28 @@ function Invoke-DhcpInform {
         [DhcpPacket]$DhcpAckPacket,
 
         # Client MAC Address (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(ParameterSetName = 'Property')]
         [ValidateScript( { ($_.Trim().ToUpper() -replace '[\.:-]') -as [PhysicalAddress] })]
         [string]$MacAddress = 'AABBCCDDEEFF',
 
         # Client IP address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ipaddress]$ClientIPAddress,
 
         # DHCP Server IP address (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(ParameterSetName = 'Property')]
         [ipaddress]$ServerIPAddress = [ipaddress]::Any,
 
         # Client-identifier (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [byte[]]$ClientId,
 
         # Parameter request list (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [byte[]]$ParameterRequestList,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [bool]$BroadcastFlag = $false,
 
         [Parameter()]
@@ -263,7 +263,7 @@ function Invoke-DhcpInform {
 }
 
 function Invoke-DhcpRequest {
-    [CmdletBinding(DefaultParameterSetName = 'Packet')]
+    [CmdletBinding(DefaultParameterSetName = 'Property')]
     [OutputType([DhcpPacket])]
     param (
         # DHCP Offer packet
@@ -272,28 +272,28 @@ function Invoke-DhcpRequest {
         [DhcpPacket]$DhcpOfferPacket,
 
         # Client MAC Address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ValidateScript( { ($_.Trim().ToUpper() -replace '[\.:-]') -as [PhysicalAddress] })]
         [string]$MacAddress,
 
         # Request IP address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ipaddress]$RequestIPAddress,
 
         # DHCP Server IP address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ipaddress]$ServerIPAddress,
 
         # Client-identifier (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [byte[]]$ClientId,
 
         # Parameter request list (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [byte[]]$ParameterRequestList,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [bool]$BroadcastFlag = $false,
 
         [Parameter()]
@@ -338,7 +338,7 @@ function Invoke-DhcpRequest {
 }
 
 function Invoke-DhcpRelease {
-    [CmdletBinding(DefaultParameterSetName = 'Packet')]
+    [CmdletBinding(DefaultParameterSetName = 'Property')]
     [OutputType([void])]
     param (
         # DHCP ACK packet
@@ -347,20 +347,20 @@ function Invoke-DhcpRelease {
         [DhcpPacket]$DhcpAckPacket,
 
         # Client MAC Address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ValidateScript( { ($_.Trim().ToUpper() -replace '[\.:-]') -as [PhysicalAddress] })]
         [string]$MacAddress,
 
         # Client IP address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ipaddress]$ClientIPAddress,
 
         # DHCP Server IP address (mandatory)
-        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Property')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ipaddress]$ServerIPAddress,
 
         # Client-identifier (option)
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [ValidateNotNullOrEmpty()]
         [byte[]]$ClientId
     )
@@ -456,13 +456,13 @@ function New-DhcpPacket {
         [ValidateNotNullOrEmpty()]
         [byte[]]$ClientId,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [byte[]]$ParameterRequestList,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [HashTable]$Options,
 
-        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [Parameter()]
         [bool]$BroadcastFlag = $false
     )
 

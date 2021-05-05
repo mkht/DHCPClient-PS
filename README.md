@@ -358,7 +358,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 #### Methods
 |Name|Return type|Description|
 |:----|:----|:----|
-|AddDhcpOptions(byte, byte[])|[void]|Add DHCP Option. 1st parameter is option number, 2nd is value of bytes.|
+|AddDhcpOption(byte, byte[])|[void]|Add DHCP Option. 1st parameter is option number, 2nd is value of bytes.|
 |GetPacketBytes()|[byte[]]|Returns raw bytes packet.|
 
 

@@ -75,9 +75,9 @@ Class DhcpOptionObject {
                 }
                 { $_ -in ('IPAddressLeaseTime', 'RenewalTime', 'RebindingTime', 'ARPTimeout') } {
                     # TimeSpan
-                    # Convert big endian order bytes to Int32 seconds
-                    $Seconds = [ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt32($Value, 0))
-                    return [timespan]::new(0, 0, $Seconds)
+                    # Convert big endian order bytes to UInt32 seconds
+                    $Ticks = [int64]([ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt64(([byte[]]::new(4) + $Value), 0)) * 1e7)
+                    return [timespan]::new($Ticks)
                 }
                 DHCPMessageType {
                     return ($Value[0] -as [DhcpMessageType])

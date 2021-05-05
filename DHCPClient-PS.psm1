@@ -532,6 +532,11 @@ function New-DhcpPacket {
                 $ValueObject = $_.GetAddressBytes()
                 break
             }
+            { $_ -is [timespan] } {
+                # [ipaddress]::HostToNetworkOrder cannot handle UInt32 correctly, so it uses the lower 4 bytes of Int64 to handle it.
+                $ValueObject = [System.BitConverter]::GetBytes([ipaddress]::HostToNetworkOrder([int64]($_.Ticks / 1e7)))[4..7]
+                break
+            }
             Default { continue op_for }
         }
 

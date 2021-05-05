@@ -363,6 +363,9 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **1.1.2**
+  - Fixed: `Invoke-DhcpInform` with pipeline input does not function.
+
 + **1.1.0**
   - Add `Invoke-DhcpInform` function
   - Allow the broadcast flag to be specified. (`-BroadcastFlag` parameter)

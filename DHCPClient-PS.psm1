@@ -1,4 +1,4 @@
-﻿using namespace System.Net.Sockets
+using namespace System.Net.Sockets
 
 using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
@@ -215,12 +215,12 @@ function Invoke-DhcpInform {
 
     if ($PSCmdlet.ParameterSetName -eq 'Packet') {
         $p = @{
-            YIAddr = $DhcpAckPacket.YIAddr
+            CIAddr = $DhcpAckPacket.YIAddr
             CHAddr = $DhcpAckPacket.CHAddr
             SIAddr = if ($sid = $DhcpAckPacket._DhcpOptionsList[[DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
         }
         $ServerIPAddress = $p.SIAddr
-        $Inform = [DhcpInformPacket]::new($Offer.YIAddr, $Offer.SIAddr, $Offer.CHAddr)
+        $Inform = [DhcpInformPacket]::new($p.CIAddr, $p.SIAddr, $p.CHAddr)
     }
     else {
         [PhysicalAddress]$_MacAddress = [PhysicalAddress]::Parse($MacAddress.Trim().ToUpper() -replace '[\.:-]')

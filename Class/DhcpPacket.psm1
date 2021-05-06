@@ -124,13 +124,20 @@ class DhcpPacket {
 
     [void]AddDhcpOptions([DhcpOptionObject[]]$Options) {
         foreach ($op in $Options) {
-            $this._DhcpOptionsList[$op.OptionCode] = $op
+            if ($null -eq $this._DhcpOptionsList[$op.OptionCode]) {
+                $this._DhcpOptionsList[$op.OptionCode] = $op
+            }
+            else {
+                $this._DhcpOptionsList[$op.OptionCode]._Value += $op._Value
+            }
         }
     }
 
     [void]AddDhcpOption([byte]$OptionCode, [byte[]]$Value) {
         $op = [DhcpOptionObject]::new([byte]$OptionCode, [byte[]]$Value)
-        $this._DhcpOptionsList[$op.OptionCode] = $op
+        $this.AddDhcpOptions($op)
+    }
+
     }
 
     static [DhcpPacket]Parse([byte[]]$Packet) {

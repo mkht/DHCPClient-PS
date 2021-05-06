@@ -1,12 +1,15 @@
-﻿using module '.\Enums.psm1'
+using module '.\Enums.psm1'
 
 # DHCP Option object
 Class DhcpOptionObject {
     [byte]$OptionCode
     [string]$Name
 
-    [ValidateCount(0, 254)]
+    [ValidateCount(0, 1024)]
     Hidden [byte[]]$_Value
+
+    [ValidateRange(1, 255)]
+    [byte]$SplitSize = 255
 
     DhcpOptionObject([byte]$OptionCode, [byte[]]$Value) {
         $this.OptionCode = $OptionCode
@@ -38,12 +41,26 @@ Class DhcpOptionObject {
 
     [byte[]]GetBytes() {
         $ByteArray = New-Object 'System.Collections.Generic.List[byte]'
-        $ByteArray.Add($this.OptionCode)
-        $ByteArray.Add($this._Value.Count)
-        if ($null -ne $this._Value) {
-            $ByteArray.AddRange($this._Value)
+        if ($null -eq $this._Value) {
+            $ByteArray.Add($this.OptionCode)
+            $ByteArray.Add(0)
+            return $ByteArray.ToArray()
         }
-        return $ByteArray.ToArray()
+        else {
+            $Reader = [System.IO.BinaryReader]::new((New-Object IO.MemoryStream(@(, $this._Value))))
+            try {
+                (1..([math]::Ceiling($this._Value.Count / $this.SplitSize))) | ForEach-Object {
+                    $ByteArray.Add($this.OptionCode)
+                    $Length = [Math]::Min(($Reader.BaseStream.Length - $Reader.BaseStream.Position), $this.SplitSize)
+                    $ByteArray.Add($Length)
+                    $ByteArray.AddRange($Reader.GetBytes($Length))
+                }
+            }
+            finally {
+                $Reader.Close()
+            }
+            return $ByteArray.ToArray()
+        }
     }
 
     static [DhcpOptionObject]Parse([byte[]]$Bytes) {

@@ -16,8 +16,8 @@ class DhcpInformPacket : DhcpPacket {
         [DhcpOption]::WebProxyAutoDiscovery
     )
 
-    [ipaddress]$ClientIPAddress = [ipaddress]::Any
-    [ipaddress]$ServerIPAddress = [ipaddress]::Broadcast
+    [ValidateNotNull()][ipaddress]$ClientIPAddress = [ipaddress]::Any
+    [ValidateNotNull()][ipaddress]$ServerIPAddress = [ipaddress]::Broadcast
 
     DhcpInformPacket([IPAddress]$ClientIPAddress, [IPAddress]$ServerIPAddress , [PhysicalAddress]$MacAddress) : base() {
         [Random]::new().NextBytes($this.XID)

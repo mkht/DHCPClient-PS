@@ -4,8 +4,8 @@ using module '.\DhcpPacket.psm1'
 
 # DHCP Release Packet class
 class DhcpReleasePacket : DhcpPacket {
-    [ipaddress]$ClientIPAddress = [ipaddress]::None
-    [ipaddress]$ServerIPAddress = [ipaddress]::None
+    [ValidateNotNull()][ipaddress]$ClientIPAddress = [ipaddress]::None
+    [ValidateNotNull()][ipaddress]$ServerIPAddress = [ipaddress]::None
 
     DhcpReleasePacket([ipaddress]$ClientIPAddress, [IPAddress]$ServerIPAddress, [PhysicalAddress]$MacAddress) : base() {
         [Random]::new().NextBytes($this.XID)

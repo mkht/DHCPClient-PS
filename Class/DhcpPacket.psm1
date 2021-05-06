@@ -82,11 +82,11 @@ class DhcpPacket {
     [byte[]]$XID = (New-Object Byte[] 4)
     [UInt16]$Secs = 0
     [UInt16]$Flags = 0
-    [ipaddress]$CIAddr = [ipaddress]::Any
-    [ipaddress]$YIAddr = [ipaddress]::Any
-    [ipaddress]$SIAddr = [ipaddress]::Any
-    [ipaddress]$GIAddr = [ipaddress]::Any
-    [PhysicalAddress]$CHAddr = [PhysicalAddress]::new((New-Object Byte[] 6))
+    [ValidateNotNull()][ipaddress]$CIAddr = [ipaddress]::Any
+    [ValidateNotNull()][ipaddress]$YIAddr = [ipaddress]::Any
+    [ValidateNotNull()][ipaddress]$SIAddr = [ipaddress]::Any
+    [ValidateNotNull()][ipaddress]$GIAddr = [ipaddress]::Any
+    [ValidateNotNull()][PhysicalAddress]$CHAddr = [PhysicalAddress]::new((New-Object Byte[] 6))
     [string]$SName = ''
     [string]$File = ''
     [byte[]]$MagicCookie = [byte[]](0x63, 0x82, 0x53, 0x63)

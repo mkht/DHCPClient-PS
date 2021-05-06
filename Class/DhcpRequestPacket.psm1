@@ -16,8 +16,8 @@ class DhcpRequestPacket : DhcpPacket {
         [DhcpOption]::WebProxyAutoDiscovery
     )
 
-    [ipaddress]$RequestedIPAddress = [ipaddress]::None
-    [ipaddress]$ServerIPAddress = [ipaddress]::Any
+    [ValidateNotNull()][ipaddress]$RequestedIPAddress = [ipaddress]::None
+    [ValidateNotNull()][ipaddress]$ServerIPAddress = [ipaddress]::Any
 
     DhcpRequestPacket([IPAddress]$RequestIPAddress, [IPAddress]$ServerIPAddress , [PhysicalAddress]$MacAddress) : base() {
         [Random]::new().NextBytes($this.XID)

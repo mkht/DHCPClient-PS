@@ -122,9 +122,9 @@ class DhcpPacket {
         }
     }
 
-    [void]AddDhcpOptions([DhcpOptionObject[]]$Options) {
+    [void]AddDhcpOptions([DhcpOptionObject[]]$Options, [bool]$ConcatWhenExist) {
         foreach ($op in $Options) {
-            if ($null -eq $this._DhcpOptionsList[$op.OptionCode]) {
+            if ((-not $ConcatWhenExist) -or ($null -eq $this._DhcpOptionsList[$op.OptionCode])) {
                 $this._DhcpOptionsList[$op.OptionCode] = $op
             }
             else {
@@ -133,9 +133,17 @@ class DhcpPacket {
         }
     }
 
-    [void]AddDhcpOption([byte]$OptionCode, [byte[]]$Value) {
+    [void]AddDhcpOptions([DhcpOptionObject[]]$Options) {
+        $this.AddDhcpOptions($Options, $false)
+    }
+
+    [void]AddDhcpOption([byte]$OptionCode, [byte[]]$Value, [bool]$ConcatWhenExist) {
         $op = [DhcpOptionObject]::new([byte]$OptionCode, [byte[]]$Value)
-        $this.AddDhcpOptions($op)
+        $this.AddDhcpOptions($op, $ConcatWhenExist)
+    }
+
+    [void]AddDhcpOption([byte]$OptionCode, [byte[]]$Value) {
+        $this.AddDhcpOption($OptionCode, $Value, $false)
     }
 
     [bool]RemoveDhcpOption([byte]$OptionCode) {
@@ -183,7 +191,7 @@ class DhcpPacket {
                     $OpLength = $Reader.ReadByte()
                     $OpValue = $Reader.ReadBytes($OpLength)
                     $OpsObj = [DhcpOptionObject]::new($OpNumber, $OpValue)
-                    $DhcpResponse.AddDhcpOptions($OpsObj)
+                    $DhcpResponse.AddDhcpOptions($OpsObj, $true)
                 }
             }
         }

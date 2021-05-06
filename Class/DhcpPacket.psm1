@@ -1,4 +1,4 @@
-using module '.\Enums.psm1'
+﻿using module '.\Enums.psm1'
 using module '.\DhcpOptionObject.psm1'
 
 <#
@@ -138,6 +138,8 @@ class DhcpPacket {
         $this.AddDhcpOptions($op)
     }
 
+    [bool]RemoveDhcpOption([byte]$OptionCode) {
+        return $this._DhcpOptionsList.Remove($OptionCode)
     }
 
     static [DhcpPacket]Parse([byte[]]$Packet) {

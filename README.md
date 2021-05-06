@@ -358,11 +358,16 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 #### Methods
 |Name|Return type|Description|
 |:----|:----|:----|
-|AddDhcpOption(byte, byte[])|[void]|Add DHCP Option. 1st parameter is option number, 2nd is value of bytes.|
+|AddDhcpOption(byte, byte[])|[void]|Add DHCP Option. 1st parameter is an option number, 2nd is value of bytes.|
+|RemoveDhcpOption(byte)|[bool]|Remove DHCP Option. parameter is an option number.|
 |GetPacketBytes()|[byte[]]|Returns raw bytes packet.|
 
 
 ## Change log
++ **Unreleased**
+  - Add support for handling DHCP option values that are longer than 255 bytes. (Encoding Long Options as defined in [RFC 3396](https://tools.ietf.org/html/rfc3396))
+  - Add `RemoveDhcpOption()` method to `[DhcpPacket]` class.
+
 + **1.1.3**
   - Fixed: The number of seconds larger than the `[Int32]::MaxValue` is not parsed correctly.
 

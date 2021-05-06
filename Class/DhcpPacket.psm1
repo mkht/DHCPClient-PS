@@ -1,4 +1,4 @@
-﻿using module '.\Enums.psm1'
+using module '.\Enums.psm1'
 using module '.\DhcpOptionObject.psm1'
 
 <#
@@ -134,48 +134,55 @@ class DhcpPacket {
     }
 
     static [DhcpPacket]Parse([byte[]]$Packet) {
-        $Reader = [System.IO.BinaryReader]::new((New-Object IO.MemoryStream(@(, $Packet))))
         $DhcpResponse = [DhcpPacket]::new()
+        $Reader = [System.IO.BinaryReader]::new((New-Object IO.MemoryStream(@(, $Packet))))
+        try {
+            # Headers
+            $DhcpResponse.OpCode = $Reader.ReadByte()
+            $DhcpResponse.HType = $Reader.ReadByte()
+            $DhcpResponse.HLen = $Reader.ReadByte()
+            $DhcpResponse.Hops = $Reader.ReadByte()
+            $DhcpResponse.XID = $Reader.ReadBytes(4)
+            $DhcpResponse.Secs = $Reader.ReadUInt16()
+            $DhcpResponse.Flags = $Reader.ReadUInt16()
 
-        # Headers
-        $DhcpResponse.OpCode = $Reader.ReadByte()
-        $DhcpResponse.HType = $Reader.ReadByte()
-        $DhcpResponse.HLen = $Reader.ReadByte()
-        $DhcpResponse.Hops = $Reader.ReadByte()
-        $DhcpResponse.XID = $Reader.ReadBytes(4)
-        $DhcpResponse.Secs = $Reader.ReadUInt16()
-        $DhcpResponse.Flags = $Reader.ReadUInt16()
+            # IP address
+            $DhcpResponse.CIAddr = [ipaddress]::new($Reader.ReadBytes(4))
+            $DhcpResponse.YIAddr = [ipaddress]::new($Reader.ReadBytes(4))
+            $DhcpResponse.SIAddr = [ipaddress]::new($Reader.ReadBytes(4))
+            $DhcpResponse.GIAddr = [ipaddress]::new($Reader.ReadBytes(4))
 
-        # IP address
-        $DhcpResponse.CIAddr = [ipaddress]::new($Reader.ReadBytes(4))
-        $DhcpResponse.YIAddr = [ipaddress]::new($Reader.ReadBytes(4))
-        $DhcpResponse.SIAddr = [ipaddress]::new($Reader.ReadBytes(4))
-        $DhcpResponse.GIAddr = [ipaddress]::new($Reader.ReadBytes(4))
+            # MAC address
+            $DhcpResponse.CHAddr = [PhysicalAddress]::new(($Reader.ReadBytes(16))[0..5])
 
-        # MAC address
-        $DhcpResponse.CHAddr = [PhysicalAddress]::new(($Reader.ReadBytes(16))[0..5])
+            # SName & File
+            $DhcpResponse.SName = [string]::new($Reader.ReadChars(64)).Trim("`0").TrimEnd()
+            $DhcpResponse.File = [string]::new($Reader.ReadChars(128)).Trim("`0").TrimEnd()
 
-        # SName & File
-        $DhcpResponse.SName = [string]::new($Reader.ReadChars(64)).Trim("`0").TrimEnd()
-        $DhcpResponse.File = [string]::new($Reader.ReadChars(128)).Trim("`0").TrimEnd()
+            # MagicCookie
+            $DhcpResponse.MagicCookie = $Reader.ReadBytes(4)
 
-        # MagicCookie
-        $DhcpResponse.MagicCookie = $Reader.ReadBytes(4)
-
-        #  Options
-        while ($Reader.BaseStream.Position -lt $Reader.BaseStream.Length) {
-            $OpNumber = $Reader.ReadByte()
-            if ($OpNumber -eq [DhcpOption]::End) {
-                $OpsObj = [DhcpOptionObject]::new([DhcpOption]::End, $null)
-                $DhcpResponse.AddDhcpOptions($OpsObj)
-                break
+            #  Options
+            while ($Reader.BaseStream.Position -lt $Reader.BaseStream.Length) {
+                $OpNumber = $Reader.ReadByte()
+                if ($OpNumber -eq [DhcpOption]::End) {
+                    $OpsObj = [DhcpOptionObject]::new([DhcpOption]::End, $null)
+                    $DhcpResponse.AddDhcpOptions($OpsObj)
+                    break
+                }
+                else {
+                    $OpLength = $Reader.ReadByte()
+                    $OpValue = $Reader.ReadBytes($OpLength)
+                    $OpsObj = [DhcpOptionObject]::new($OpNumber, $OpValue)
+                    $DhcpResponse.AddDhcpOptions($OpsObj)
+                }
             }
-            else {
-                $OpLength = $Reader.ReadByte()
-                $OpValue = $Reader.ReadBytes($OpLength)
-                $OpsObj = [DhcpOptionObject]::new($OpNumber, $OpValue)
-                $DhcpResponse.AddDhcpOptions($OpsObj)
-            }
+        }
+        catch {
+            throw
+        }
+        finally {
+            $Reader.Close()
         }
 
         return $DhcpResponse

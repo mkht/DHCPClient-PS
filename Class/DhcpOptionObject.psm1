@@ -1,4 +1,4 @@
-using module '.\Enums.psm1'
+﻿using module '.\Enums.psm1'
 
 # DHCP Option object
 Class DhcpOptionObject {
@@ -96,6 +96,11 @@ Class DhcpOptionObject {
                     $Ticks = [int64]([ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt64(([byte[]]::new(4) + $Value), 0)) * 1e7)
                     return [timespan]::new($Ticks)
                 }
+                { $_ -in ('DomainSearch') } {
+                    # multiple strings
+                    # RFC 3397
+                    return [DhcpOptionObject]::ParseDomainSearchList($Value)
+                }
                 DHCPMessageType {
                     return ($Value[0] -as [DhcpMessageType])
                 }
@@ -108,7 +113,54 @@ Class DhcpOptionObject {
         return $Value
     }
 
-    [string]ToString() {
+    Hidden static [string[]] ParseDomainSearchList([byte[]]$Value) {
+        # Ref: RFC 1035, 3396, 3397
+        $DomainSearchList = [System.Collections.Generic.List[string]]::new()
+        $Domain = @()
+        $NextPosition = 0
+        for ($idx = 0; $idx -lt $Value.Length; ) {
+            $Length = $Value[$idx++]
+            if (0 -eq $Length) {
+                # detects end
+                if ($NextPosition -gt $idx) {
+                    # back to pointer
+                    $idx = $NextPosition
+                }
+
+                if ($Domain.Count -gt 0) {
+                    $DomainSearchList.Add($Domain -join '.')
+                }
+                $Domain = @()
+                continue
+            }
+            elseif ($Length -ge 0xc0) {
+                # detects compression pointer
+                $HigherOctet = (($Length -band 0x3f) -shl 8)
+                if ($idx -lt $Value.Length) {
+                    $LowerOctet = $Value[$idx]
+                }
+                else { break }
+                $CPointer = [int]($HigherOctet + $LowerOctet)
+                $NextPosition = ++$idx
+                $idx = $CPointer
+                continue
+            }
+            else {
+                # continue reading
+                $lastIdx = ($idx + $Length - 1)
+                if ($lastIdx -lt $Value.Length) {
+                    $Domain += [string]::new($Value[$idx..$lastIdx])
+                }
+                else { break }
+                $idx += $Length
+                continue
+            }
+        }
+
+        return $DomainSearchList.ToArray()
+    }
+
+    [string] ToString() {
         return ('{0} ({1})' -f $this.Name, $this.Value)
     }
 }

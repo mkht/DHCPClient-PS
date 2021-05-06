@@ -1,4 +1,4 @@
-﻿using namespace System.Net.Sockets
+using namespace System.Net.Sockets
 
 using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
@@ -13,7 +13,7 @@ function Send-DhcpPacket {
     [OutputType([DhcpPacket])]
     param (
         [Parameter(Mandatory = $true)]
-        [ValidateCount(240, 1024)]
+        [ValidateCount(240, 1500)]
         [byte[]]$Packet,
 
         [Parameter()]

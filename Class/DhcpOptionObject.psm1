@@ -53,7 +53,7 @@ Class DhcpOptionObject {
                     $ByteArray.Add($this.OptionCode)
                     $Length = [Math]::Min(($Reader.BaseStream.Length - $Reader.BaseStream.Position), $this.SplitSize)
                     $ByteArray.Add($Length)
-                    $ByteArray.AddRange($Reader.GetBytes($Length))
+                    $ByteArray.AddRange($Reader.ReadBytes($Length))
                 }
             }
             finally {

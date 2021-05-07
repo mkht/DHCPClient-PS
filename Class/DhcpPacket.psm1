@@ -91,19 +91,19 @@ class DhcpPacket {
     [string]$File = ''
     [byte[]]$MagicCookie = [byte[]](0x63, 0x82, 0x53, 0x63)
 
-    Hidden $_DhcpOptionsList = [System.Collections.Generic.SortedList[[byte], [DhcpOptionObject]]]::new()
+    Hidden [System.Collections.Specialized.OrderedDictionary]$_DhcpOptionsList = [System.Collections.Specialized.OrderedDictionary]::new()
 
     DhcpPacket() {
         # Options property (Read-only)
         $this | Add-Member ScriptProperty 'Options' {
             # Getter
-            $this._DhcpOptionsList.Values | select OptionCode, Name, Value, Length
+            $this._DhcpOptionsList.AsReadOnly()
         }
 
         # MessageType property
         $this | Add-Member ScriptProperty 'MessageType' {
             # Getter
-            [DhcpMessageType]($this._DhcpOptionsList[[DhcpOption]::DHCPMessageType]._Value)
+            [DhcpMessageType]($this._DhcpOptionsList[[byte][DhcpOption]::DHCPMessageType]._Value)
         } {
             # Setter
             param([DhcpMessageType]$MsgType)
@@ -124,11 +124,13 @@ class DhcpPacket {
 
     [void]AddDhcpOptions([DhcpOptionObject[]]$Options, [bool]$ConcatWhenExist) {
         foreach ($op in $Options) {
-            if ((-not $ConcatWhenExist) -or ($null -eq $this._DhcpOptionsList[$op.OptionCode])) {
-                $this._DhcpOptionsList[$op.OptionCode] = $op
+            if ($op -isnot [DhcpOptionObject]) { continue }
+
+            if ((-not $ConcatWhenExist) -or ([byte]$op.OptionCode -notin $this._DhcpOptionsList.Keys)) {
+                $this._DhcpOptionsList[[byte]$op.OptionCode] = $op
             }
             else {
-                $this._DhcpOptionsList[$op.OptionCode]._Value += $op._Value
+                $this._DhcpOptionsList[[byte]$op.OptionCode]._Value += $op._Value
             }
         }
     }
@@ -147,7 +149,7 @@ class DhcpPacket {
     }
 
     [bool]RemoveDhcpOption([byte]$OptionCode) {
-        return $this._DhcpOptionsList.Remove($OptionCode)
+        return $this._DhcpOptionsList.Remove([byte]$OptionCode)
     }
 
     static [DhcpPacket]Parse([byte[]]$Packet) {
@@ -253,8 +255,17 @@ class DhcpPacket {
         $ByteArray.AddRange($this.MagicCookie)
 
         # Options
+        $HasEnd = ($this._DhcpOptionsList.keys -eq [DhcpOption]::End)
         foreach ($option in $this._DhcpOptionsList.Values) {
-            $ByteArray.AddRange($option.GetBytes())
+            if (($option -is [DhcpOptionObject]) -and ($option.OptionCode -ne [DhcpOption]::End)) {
+                $ByteArray.AddRange($option.GetBytes())
+            }
+        }
+
+        # End
+        if ($HasEnd) {
+            $End = [DhcpOptionObject]::new([DhcpOption]::End, $null)
+            $ByteArray.AddRange($End.GetBytes())
         }
 
         return $ByteArray.ToArray()

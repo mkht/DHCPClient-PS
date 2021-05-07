@@ -311,9 +311,9 @@ Default: The value of MAC address.
 Specifies request values for configuration parameters.  
 This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).
 
-* **`-Options`**  [HashTable]  
+* **`-Options`**  [IDictionary]  
 Specifies DHCP configuration option parameters.  
-You should specify the param as hashtable that the key as option number and value as bytes. (See example)
+You should specify the param as hashtable or dictionary that the key as option number and value as bytes. (See example)
 
 * **`-BroadcastFlag`**  [bool]  
 Specifies the flag to request the server to broadcast a reply.  
@@ -352,7 +352,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 |File|[string]|Boot file name|
 |MagicCookie|[byte[]]|Magic cookie, Should be `0x63, 0x82, 0x53, 0x63`|
 |MessageType|[byte]|DHCP Message type|
-|Options|[List<[byte], [byte[]]>]|DHCP Configuration Options (Read-only).|
+|Options|[Dictionary]|DHCP Configuration Options (Read-only).|
 |BroadcastFlag|[bool]|Flag to request a broadcast response from the server.|
 
 #### Methods
@@ -365,6 +365,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 ## Change log
 + **Unreleased**
+  - The order of DHCP options is now preserved. Previously, they were sorted.
   - Add support for parsing Domain Search List (Option 119, defined in [RFC 3397](https://tools.ietf.org/html/rfc3397))
   - Add support for handling DHCP option values that are longer than 255 bytes. (Encoding Long Options as defined in [RFC 3396](https://tools.ietf.org/html/rfc3396))
   - Add `RemoveDhcpOption()` method to `[DhcpPacket]` class.

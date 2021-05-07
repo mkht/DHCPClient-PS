@@ -217,7 +217,7 @@ function Invoke-DhcpInform {
         $p = @{
             CIAddr = $DhcpAckPacket.YIAddr
             CHAddr = $DhcpAckPacket.CHAddr
-            SIAddr = if ($sid = $DhcpAckPacket._DhcpOptionsList[[DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
+            SIAddr = if ($sid = $DhcpAckPacket._DhcpOptionsList[[byte][DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
         }
         $ServerIPAddress = $p.SIAddr
         $Inform = [DhcpInformPacket]::new($p.CIAddr, $p.SIAddr, $p.CHAddr)
@@ -305,7 +305,7 @@ function Invoke-DhcpRequest {
         $Offer = @{
             YIAddr = $DhcpOfferPacket.YIAddr
             CHAddr = $DhcpOfferPacket.CHAddr
-            SIAddr = if ($sid = $DhcpOfferPacket._DhcpOptionsList[[DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
+            SIAddr = if ($sid = $DhcpOfferPacket._DhcpOptionsList[[byte][DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
         }
         $Request = [DhcpRequestPacket]::new($Offer.YIAddr, $Offer.SIAddr, $Offer.CHAddr)
     }
@@ -369,7 +369,7 @@ function Invoke-DhcpRelease {
         $p = @{
             YIAddr = $DhcpAckPacket.YIAddr
             CHAddr = $DhcpAckPacket.CHAddr
-            SIAddr = if ($sid = $DhcpAckPacket._DhcpOptionsList[[DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
+            SIAddr = if ($sid = $DhcpAckPacket._DhcpOptionsList[[byte][DhcpOption]::ServerId]) { $sid.Value }else { [ipaddress]::Any }
         }
         $Release = [DhcpReleasePacket]::new($p.YIAddr, $p.SIAddr, $p.CHAddr)
         $ServerIPAddress = $p.SIAddr
@@ -460,7 +460,7 @@ function New-DhcpPacket {
         [byte[]]$ParameterRequestList,
 
         [Parameter()]
-        [HashTable]$Options,
+        [System.Collections.IDictionary]$Options,
 
         [Parameter()]
         [bool]$BroadcastFlag = $false
@@ -501,13 +501,15 @@ function New-DhcpPacket {
     }
 
     # Options
-    :op_for foreach ($op in $Options.Keys) {
-        if (-not ($op -as [byte])) {
+    $KeyArray = $Options.Keys.ForEach( { $_ })
+    $ValueArray = $Options.Values.ForEach( { $_ })
+    :op_for for ($i = 0; $i -lt $KeyArray.Count; $i++) {
+        if (-not ($KeyArray[$i] -as [byte])) {
             continue
         }
 
         [byte[]]$ValueObject = $null
-        switch ($Options[$op]) {
+        switch ($ValueArray[$i]) {
             { $null -eq $_ } {
                 $ValueObject = $null
                 break
@@ -541,7 +543,7 @@ function New-DhcpPacket {
         }
 
         try {
-            $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new($op, $ValueObject))
+            $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new($KeyArray[$i], $ValueObject))
         }
         catch {
             Write-Error -Exception $_.Exception

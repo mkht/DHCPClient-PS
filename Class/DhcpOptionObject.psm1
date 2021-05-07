@@ -9,7 +9,7 @@ Class DhcpOptionObject {
     Hidden [byte[]]$_Value
 
     [ValidateRange(1, 255)]
-    [byte]$SplitSize = 255
+    Hidden [byte]$SplitSize = 255
 
     DhcpOptionObject([byte]$OptionCode, [byte[]]$Value) {
         $this.OptionCode = $OptionCode

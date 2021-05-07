@@ -502,7 +502,7 @@ function New-DhcpPacket {
 
     # Options
     :op_for foreach ($op in $Options.Keys) {
-        if (-not ($op -as [DhcpOption])) {
+        if (-not ($op -as [byte])) {
             continue
         }
 

@@ -368,6 +368,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
   - Add support for parsing Domain Search List (Option 119, defined in [RFC 3397](https://tools.ietf.org/html/rfc3397))
   - Add support for handling DHCP option values that are longer than 255 bytes. (Encoding Long Options as defined in [RFC 3396](https://tools.ietf.org/html/rfc3396))
   - Add `RemoveDhcpOption()` method to `[DhcpPacket]` class.
+  - Fix an issue that the `-Options` parameter of `New-DhcpPacket` does not allow adding options that are not defined in IANA.
 
 + **1.1.3**
   - Fixed: The number of seconds larger than the `[Int32]::MaxValue` is not parsed correctly.

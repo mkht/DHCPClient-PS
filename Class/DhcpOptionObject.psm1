@@ -86,7 +86,7 @@ Class DhcpOptionObject {
                     }
                     return $OptionValue
                 }
-                { $_ -in ('DomainName', 'Hostname', 'ClassId', 'WebProxyAutoDiscovery') } {
+                { $_ -in ('DomainName', 'Hostname', 'ClassId', 'WebProxyAutoDiscovery', 'PCode', 'TCode') } {
                     # String
                     return [string]::new($Value)
                 }

@@ -96,10 +96,26 @@ Class DhcpOptionObject {
                     $Ticks = [int64]([ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt64(([byte[]]::new(4) + $Value), 0)) * 1e7)
                     return [timespan]::new($Ticks)
                 }
-                { $_ -in ('DomainSearch') } {
+                DomainSearch {
                     # multiple strings
                     # RFC 3397
                     return [DhcpOptionObject]::ParseDomainSearchList($Value)
+                }
+                SIPServersDHCPOption {
+                    # multiple strings or IP addresses
+                    # RFC 3361
+                    $Enc = $Value[0]
+                    $Data = $Value[1..($Value.Length - 1)]
+                    if ($Enc -eq 0) {
+                        return [DhcpOptionObject]::ParseDomainSearchList($Data)
+                    }
+                    else {
+                        $OptionValue = [ipaddress[]]@()
+                        for ($i = 0; ($i + 4) -le $Data.Count; $i += 4) {
+                            $OptionValue += [ipaddress]::new($Data[$i..($i + 3)])
+                        }
+                        return $OptionValue
+                    }
                 }
                 DHCPMessageType {
                     return ($Value[0] -as [DhcpMessageType])

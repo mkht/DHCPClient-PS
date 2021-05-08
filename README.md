@@ -281,6 +281,25 @@ PS> $Options = @{
         61 = [byte[]](0x01,0x1a,0x2b,0x3c,0x4d,0x5e,0x6f)
     }
 PS> $Message = New-DhcpPacket -Type DHCPDISCOVER -TransactionId (0,1,2,3) -MacAddress 1A2B3C4D5E6F -ServerIPAddress 192.168.0.1 -Options $Options
+PS> $Message | Select-Object MessageType, XID, CHAddr, Options
+
+MessageType : DHCPDISCOVER
+XID         : {0, 1, 2, 3}
+CHAddr      : 1A2B3C4D5E6F
+Options     : {53, 61, 55, 12…}
+
+PS> $Message.Options
+
+Name                           Value
+----                           -----
+53                             DHCPMessageType (DHCPDISCOVER)
+61                             ClientId (1 26 43 60 77 94 111)
+54                             ServerId (192.168.0.1)
+55                             ParameterRequestList (1 3 6 15 31 33 43 44)
+12                             Hostname (HOSTNAME)
+60                             ClassId (77 83 70 84 32 53 46 48)
+50                             RequestedIPAddress (192.168.0.10)
+255                            End ()
 ```
 
 #### Parameters

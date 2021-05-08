@@ -527,6 +527,21 @@ function New-DhcpPacket {
         elseif ( $_v -as [byte[]] ) {
             $ValueObject = ($_v -as [byte[]])
         }
+        elseif ($_v -as [string[]] -and ($KeyArray[$i] -in ([dhcpoption]::DomainSearch, [dhcpoption]::SIPServersDHCPOption))) {
+            if ($KeyArray[$i] -eq [dhcpoption]::DomainSearch) {
+                # RFC 3397
+                $ValueObject = [DhcpOptionObject]::ConvertDomainSearchListToBytes([string[]]$_v)
+            }
+            elseif ($KeyArray[$i] -eq [dhcpoption]::SIPServersDHCPOption) {
+                # RFC 3361
+                if ($_v -as [ipaddress[]]) {
+                    $ValueObject = [byte[]](0x01) + ([ipaddress[]]$_v).ForEach( { $_.GetAddressBytes() })
+                }
+                else {
+                    $ValueObject = [byte[]](0x00) + [DhcpOptionObject]::ConvertDomainSearchListToBytes([string[]]$_v)
+                }
+            }
+        }
         elseif ( $_v -is [string] ) {
             $ValueObject = [System.Text.Encoding]::UTF8.GetBytes($_v)
         }
@@ -534,7 +549,7 @@ function New-DhcpPacket {
             $ValueObject = $_v.GetAddressBytes()
         }
         elseif ( $_v -as [ipaddress[]] ) {
-            $ValueObject = ([ipaddress[]]$_v).ForEach( { $_v.GetAddressBytes() })
+            $ValueObject = ([ipaddress[]]$_v).ForEach( { $_.GetAddressBytes() })
         }
         elseif ( $_v -is [PhysicalAddress] ) {
             $ValueObject = $_v.GetAddressBytes()

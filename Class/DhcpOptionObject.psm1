@@ -160,6 +160,56 @@ Class DhcpOptionObject {
         return $DomainSearchList.ToArray()
     }
 
+    Hidden static [byte[]] ConvertDomainSearchListToBytes([string[]]$Domains) {
+        # Ref: RFC 1035, 3397
+        [byte[]]$Result = $null
+        $IdnMapping = [System.Globalization.IdnMapping]::new()
+        $PointerList = @{}
+        $Writer = [System.IO.BinaryWriter]::new([System.IO.MemoryStream]::new())
+        try {
+            foreach ($Domain in $Domains) {
+                while (-not [string]::IsNullOrWhiteSpace($Domain)) {
+                    # Convert internationalized domain names to Punycode
+                    $Domain = $IdnMapping.GetAscii($Domain.Trim("`0", '.').Trim())
+
+                    if ($PointerList.ContainsKey($Domain)) {
+                        if ($PointerList[$Domain] -ge 0 -and $PointerList[$Domain] -le 0x3fff) {
+                            # Compression pointer (2 bytes big endian)
+                            $Pointer = [System.BitConverter]::GetBytes([ipaddress]::NetworkToHostOrder([Int32]((0xc0 -shl 8) + $PointerList[$Domain])))[2..3]
+                            $Writer.Write([byte[]]$Pointer)
+                            break
+                        }
+                    }
+
+                    if ($Domain.IndexOf('.') -le 0) {
+                        $PointerList[$Domain] = $Writer.BaseStream.Position
+                        $TLDBytes = [System.Text.Encoding]::UTF8.GetBytes($Domain)
+                        $Writer.Write([byte]$TLDBytes.Length)
+                        $Writer.Write([byte[]]$TLDBytes)
+                        # End flag
+                        $Writer.Write([byte]0x00)
+                        break
+                    }
+                    else {
+                        $PointerList[$Domain] = $Writer.BaseStream.Position
+                        $SplitDomain = $Domain.Split('.', 2, 1)
+                        $Domain = $SplitDomain[1]
+                        $LLD = $SplitDomain[0].Trim("`0").Trim()
+                        $LLDBytes = [System.Text.Encoding]::UTF8.GetBytes($LLD)
+                        $Writer.Write([byte]$LLDBytes.Length)
+                        $Writer.Write([byte[]]$LLDBytes)
+                    }
+                }
+            }
+        }
+        finally {
+            $Result = $Writer.BaseStream.ToArray()
+            $Writer.Close()
+        }
+
+        return $Result
+    }
+
     [string] ToString() {
         return ('{0} ({1})' -f $this.Name, $this.Value)
     }

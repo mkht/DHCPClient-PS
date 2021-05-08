@@ -1,4 +1,4 @@
-using namespace System.Net.Sockets
+﻿using namespace System.Net.Sockets
 
 using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
@@ -486,8 +486,8 @@ function New-DhcpPacket {
     $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ClientId, (([byte[]]0x01) + $_MacAddress.GetAddressBytes())))
 
     # Server IP
-    if ($PSBoundParameters.ContainsKey('ServerIP')) {
-        $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ServerId, $ServerIP.GetAddressBytes()))
+    if ($PSBoundParameters.ContainsKey('ServerIPAddress')) {
+        $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ServerId, $ServerIPAddress.GetAddressBytes()))
     }
 
     # Client ID
@@ -502,45 +502,39 @@ function New-DhcpPacket {
 
     # Options
     $KeyArray = $Options.Keys.ForEach( { $_ })
-    $ValueArray = $Options.Values.ForEach( { $_ })
-    :op_for for ($i = 0; $i -lt $KeyArray.Count; $i++) {
+    $ValueArray = [Object[]]::new($Options.Values.Count)
+    $Options.Values.CopyTo($ValueArray, 0)
+
+    for ($i = 0; $i -lt $KeyArray.Count; $i++) {
         if (-not ($KeyArray[$i] -as [byte])) {
             continue
         }
 
         [byte[]]$ValueObject = $null
-        switch ($ValueArray[$i]) {
-            { $null -eq $_ } {
-                $ValueObject = $null
-                break
-            }
-            { $_ -as [byte[]] } {
-                $ValueObject = ($_ -as [byte[]])
-                break
-            }
-            { $_ -is [string] } {
-                $ValueObject = [System.Text.Encoding]::UTF8.GetBytes($_)
-                break
-            }
-            { $_ -is [ipaddress] } {
-                $ValueObject = $_.GetAddressBytes()
-                break
-            }
-            { $_ -as [ipaddress[]] } {
-                $ValueObject = ([ipaddress[]]$_).ForEach( { $_.GetAddressBytes() })
-                break
-            }
-            { $_ -is [PhysicalAddress] } {
-                $ValueObject = $_.GetAddressBytes()
-                break
-            }
-            { $_ -is [timespan] } {
-                # [ipaddress]::HostToNetworkOrder cannot handle UInt32 correctly, so it uses the lower 4 bytes of Int64 to handle it.
-                $ValueObject = [System.BitConverter]::GetBytes([ipaddress]::HostToNetworkOrder([int64]($_.Ticks / 1e7)))[4..7]
-                break
-            }
-            Default { continue op_for }
+        $_v = $ValueArray[$i]
+        if ( $null -eq $_v ) {
+            $ValueObject = $null
         }
+        elseif ( $_v -as [byte[]] ) {
+            $ValueObject = ($_v -as [byte[]])
+        }
+        elseif ( $_v -is [string] ) {
+            $ValueObject = [System.Text.Encoding]::UTF8.GetBytes($_v)
+        }
+        elseif ( $_v -is [ipaddress] ) {
+            $ValueObject = $_v.GetAddressBytes()
+        }
+        elseif ( $_v -as [ipaddress[]] ) {
+            $ValueObject = ([ipaddress[]]$_v).ForEach( { $_v.GetAddressBytes() })
+        }
+        elseif ( $_v -is [PhysicalAddress] ) {
+            $ValueObject = $_v.GetAddressBytes()
+        }
+        elseif ( $_v -is [timespan] ) {
+            # [ipaddress]::HostToNetworkOrder cannot handle UInt32 correctly, so it uses the lower 4 bytes of Int64 to handle it.
+            $ValueObject = [System.BitConverter]::GetBytes([ipaddress]::HostToNetworkOrder([int64]($_v.Ticks / 1e7)))[4..7]
+        }
+        else { continue }
 
         try {
             $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new($KeyArray[$i], $ValueObject))

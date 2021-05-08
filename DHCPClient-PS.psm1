@@ -119,6 +119,7 @@ function Invoke-DhcpDiscover {
 
         # Request IP address (option)
         [Parameter()]
+        [ValidateNotNull()]
         [ipaddress]$RequestIPAddress,
 
         # Client-identifier (option)
@@ -187,10 +188,12 @@ function Invoke-DhcpInform {
 
         # Client IP address (mandatory)
         [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+        [ValidateNotNull()]
         [ipaddress]$ClientIPAddress,
 
         # DHCP Server IP address (option)
         [Parameter(ParameterSetName = 'Property')]
+        [ValidateNotNull()]
         [ipaddress]$ServerIPAddress = [ipaddress]::Any,
 
         # Client-identifier (option)
@@ -278,10 +281,12 @@ function Invoke-DhcpRequest {
 
         # Request IP address (mandatory)
         [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+        [ValidateNotNull()]
         [ipaddress]$RequestIPAddress,
 
         # DHCP Server IP address (mandatory)
         [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+        [ValidateNotNull()]
         [ipaddress]$ServerIPAddress,
 
         # Client-identifier (option)
@@ -353,10 +358,12 @@ function Invoke-DhcpRelease {
 
         # Client IP address (mandatory)
         [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+        [ValidateNotNull()]
         [ipaddress]$ClientIPAddress,
 
         # DHCP Server IP address (mandatory)
         [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
+        [ValidateNotNull()]
         [ipaddress]$ServerIPAddress,
 
         # Client-identifier (option)
@@ -407,6 +414,7 @@ function Invoke-DhcpCustomMessage {
         [DhcpPacket]$DhcpPacket,
 
         [Parameter()]
+        [ValidateNotNull()]
         [ipaddress]$ServerIPAddress = [ipaddress]::Broadcast,
 
         [Parameter()]
@@ -460,6 +468,7 @@ function New-DhcpPacket {
         [byte[]]$ParameterRequestList,
 
         [Parameter()]
+        [ValidateNotNull()]
         [System.Collections.IDictionary]$Options,
 
         [Parameter()]

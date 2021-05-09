@@ -555,8 +555,15 @@ function New-DhcpPacket {
             $ValueObject = $_v.GetAddressBytes()
         }
         elseif ( $_v -is [timespan] ) {
-            # [ipaddress]::HostToNetworkOrder cannot handle UInt32 correctly, so it uses the lower 4 bytes of Int64 to handle it.
-            $ValueObject = [System.BitConverter]::GetBytes([ipaddress]::HostToNetworkOrder([int64]($_v.Ticks / 1e7)))[4..7]
+            if ($KeyArray[$i] -eq [dhcpoption]::TimeOffset) {
+                # Int32
+                $ValueObject = [System.BitConverter]::GetBytes([ipaddress]::HostToNetworkOrder([int32]($_v.Ticks / 1e7)))[0..3]
+            }
+            else {
+                # UInt32
+                # [ipaddress]::HostToNetworkOrder cannot handle UInt32 correctly, so it uses the lower 4 bytes of Int64 to handle it.
+                $ValueObject = [System.BitConverter]::GetBytes([ipaddress]::HostToNetworkOrder([int64]($_v.Ticks / 1e7)))[4..7]
+            }
         }
         else { continue }
 

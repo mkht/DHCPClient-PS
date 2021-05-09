@@ -91,9 +91,14 @@ Class DhcpOptionObject {
                     return [string]::new($Value)
                 }
                 { $_ -in ('IPAddressLeaseTime', 'RenewalTime', 'RebindingTime', 'ARPTimeout') } {
-                    # TimeSpan
+                    # TimeSpan (UInt32)
                     # Convert big endian order bytes to UInt32 seconds
                     $Ticks = [int64]([ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt64(([byte[]]::new(4) + $Value), 0)) * 1e7)
+                    return [timespan]::new($Ticks)
+                }
+                TimeOffset {
+                    # TimeSpan (Int32)
+                    $Ticks = [Int64](([ipaddress]::NetworkToHostOrder([System.BitConverter]::ToInt32($Value, 0))) * 1e7)
                     return [timespan]::new($Ticks)
                 }
                 DomainSearch {

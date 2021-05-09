@@ -233,12 +233,12 @@ Send any DHCP message. This can be used when you need to specify detailed DHCP o
 
 #### Examples
 ```PowerShell
-PS> $Options = @{
+PS> $Options = [ordered]@{
         12 = 'HOSTNAME'
         50 = [IPAddress]'192.168.0.10'
         55 = [byte[]](1,3,6,15,31,33,43,44)
         60 = 'MSFT 5.0'
-        61 = [byte[]](0x01,0x1a,0x2b,0x3c,0x4d,0x5e,0x6f)
+        119 = ('foo.example.com', 'example.com')
     }
 PS> $Message = New-DhcpPacket -Type DHCPDISCOVER -TransactionId (0,1,2,3) -MacAddress 1A2B3C4D5E6F -ServerIPAddress 192.168.0.1 -Options $Options
 PS> $Response = $Message | Invoke-DhcpCustomMessage
@@ -384,9 +384,10 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
-+ **Unreleased**
++ **2.0.0**
   - The order of DHCP options is now preserved. Previously, they were sorted.
   - Add support for parsing Domain Search List (Option 119, defined in [RFC 3397](https://tools.ietf.org/html/rfc3397))
+  - Add support for parsing time offset (Option 2)
   - Add support for handling DHCP option values that are longer than 255 bytes. (Encoding Long Options as defined in [RFC 3396](https://tools.ietf.org/html/rfc3396))
   - Add `RemoveDhcpOption()` method to `[DhcpPacket]` class.
   - Fix an issue that the `-Options` parameter of `New-DhcpPacket` does not allow adding options that are not defined in IANA.

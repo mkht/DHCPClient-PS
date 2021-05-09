@@ -384,6 +384,9 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **2.0.1**
+  - Fix minor issue.
+
 + **2.0.0**
   - The order of DHCP options is now preserved. Previously, they were sorted.
   - Add support for parsing Domain Search List (Option 119, defined in [RFC 3397](https://tools.ietf.org/html/rfc3397))

@@ -469,7 +469,7 @@ function New-DhcpPacket {
 
         [Parameter()]
         [ValidateNotNull()]
-        [System.Collections.IDictionary]$Options,
+        [System.Collections.IDictionary]$Options = @{},
 
         [Parameter()]
         [bool]$BroadcastFlag = $false

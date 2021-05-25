@@ -1,4 +1,4 @@
-using namespace System.Net.Sockets
+﻿using namespace System.Net.Sockets
 
 using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
@@ -26,7 +26,10 @@ function Send-DhcpPacket {
         [switch]$NoReceive,
 
         [Parameter()]
-        [switch]$LongPoll
+        [switch]$LongPoll,
+
+        [Parameter()]
+        [switch]$NoXidFilter
     )
 
     try {
@@ -57,27 +60,33 @@ function Send-DhcpPacket {
         $PacketBytes = $Packet.GetPacketBytes()
         $BytesSent = $UdpClient.Send($PacketBytes, $PacketBytes.Length, $ServerEndPoint)
         Write-Verbose ('{0} bytes packet was sent to {1}.' -f $BytesSent, $ServerEndPoint.ToString())
-        Write-Verbose ('MsgType:{0} | XID:{1} | MacAddr:{2}' -f $Packet.MessageType, $Packet.XID, $Packet.CHAddr)
 
         # Receive
         if (-not $NoReceive) {
+            $PIdx = 0
             $PacketReceived = 0
             while ($true) {
                 $BytesReceived = $UdpClient.Receive([ref]$ClientEndPoint)
                 if ($BytesReceived.Length -gt 0) {
-                    Write-Verbose ('{0} bytes packet was received.' -f $BytesReceived.Length)
+                    $PIdx++
+                    Write-Verbose ('[{0}] {1} bytes packet was received.' -f $PIdx, $BytesReceived.Length)
                     # DHCP packet should be grater equal 240 bytes.
                     if ($BytesReceived.Length -ge 240) {
                         $DhcpPacket = Read-DhcpPacket $BytesReceived
-                        Write-Verbose 'Parsing DHCP packet succeeded.'
-                        Write-Verbose ('MsgType:{0} | ServerIP:{1} | AssignedIP:{2}' -f $DhcpPacket.MessageType, $DhcpPacket.SIAddr, $DhcpPacket.YIAddr)
-                        $DhcpPacket
+                        Write-Verbose ('[{0}] Parsing DHCP packet succeeded.' -f $PIdx)
+                        Write-Verbose ('[{0}] MsgType:{1} | XID:{2} | ServerIP:{3} | AssignedIP:{4}' -f $PIdx, $DhcpPacket.MessageType, ($DhcpPacket.XID -join ','), $DhcpPacket.SIAddr, $DhcpPacket.YIAddr)
+                        if ($NoXidFilter -or (IsXidEqual -First $Packet.XID -Second $DhcpPacket.XID)) {
+                            $PacketReceived++
+                            $DhcpPacket
+                        }
+                        else {
+                            Write-Verbose ('[{0}] Transaction ID of the received packet is not matched with source ID, Dropped it.' -f $PIdx)
+                        }
                     }
                     else {
-                        Write-Verbose 'It is not valid DHCP packet. Ignored.'
+                        Write-Verbose ('[{0}] It is not valid DHCP packet. Ignored.' -f $PIdx)
                     }
                 }
-                $PacketReceived++
                 if ((-not $LongPoll) -or ($PacketReceived -gt 10)) { break }
                 Start-Sleep -Milliseconds 500
             }
@@ -145,7 +154,10 @@ function Invoke-DhcpDiscover {
         [byte]$Timeout = 10,
 
         [Parameter()]
-        [switch]$LongPoll
+        [switch]$LongPoll,
+
+        [Parameter()]
+        [switch]$NoXidFilter
     )
 
     [PhysicalAddress]$_MacAddress = [PhysicalAddress]::Parse($MacAddress.Trim().ToUpper() -replace '[\.:-]')
@@ -175,10 +187,10 @@ function Invoke-DhcpDiscover {
     }
 
     Write-Verbose 'Trying to send a DHCP Discover packet.'
-    Write-Verbose ('MsgType:{0} | ClientMAC:{1}' -f `
-            $Discover.MessageType, ($Discover.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
+    Write-Verbose ('MsgType:{0} | XID:{1} | ClientMAC:{2}' -f `
+            $Discover.MessageType, ($Discover.XID -join ','), ($Discover.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    Send-DhcpPacket -Packet $Discover -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $Discover -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll -NoXidFilter:$NoXidFilter
 }
 
 function Invoke-DhcpInform {
@@ -227,7 +239,10 @@ function Invoke-DhcpInform {
         [byte]$Timeout = 10,
 
         [Parameter()]
-        [switch]$LongPoll
+        [switch]$LongPoll,
+
+        [Parameter()]
+        [switch]$NoXidFilter
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'Packet') {
@@ -279,7 +294,7 @@ function Invoke-DhcpInform {
         $SendTo = $ServerIPAddress
     }
 
-    Send-DhcpPacket -Packet $Inform -Timeout $Timeout -Server $SendTo -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $Inform -Timeout $Timeout -Server $SendTo -LongPoll:$LongPoll -NoXidFilter:$NoXidFilter
 }
 
 function Invoke-DhcpRequest {
@@ -325,7 +340,13 @@ function Invoke-DhcpRequest {
 
         [Parameter()]
         [ValidateRange(1, 255)]
-        [byte]$Timeout = 10
+        [byte]$Timeout = 10,
+
+        [Parameter()]
+        [switch]$LongPoll,
+
+        [Parameter()]
+        [switch]$NoXidFilter
     )
 
     if ($PSCmdlet.ParameterSetName -eq 'Packet') {
@@ -364,7 +385,7 @@ function Invoke-DhcpRequest {
     Write-Verbose ('MsgType:{0} | RequestIP:{1} | ServerIP:{2} | ClientMAC:{3}' -f `
             $Request.MessageType, $Request.RequestedIPAddress, $Request.ServerIPAddress, ($Request.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    Send-DhcpPacket -Packet $Request -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $Request -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll -NoXidFilter:$NoXidFilter
 }
 
 function Invoke-DhcpRelease {
@@ -457,6 +478,9 @@ function Invoke-DhcpCustomMessage {
         [Parameter(ParameterSetName = 'LongPoll')]
         [switch]$LongPoll,
 
+        [Parameter()]
+        [switch]$NoXidFilter,
+
         [Parameter(ParameterSetName = 'NoReceive')]
         [switch]$NoReceive
     )
@@ -465,7 +489,7 @@ function Invoke-DhcpCustomMessage {
     Write-Verbose ('MsgType:{0} | ClientMAC:{1}' -f `
             $DhcpPacket.MessageType, ($DhcpPacket.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    Send-DhcpPacket -Packet $DhcpPacket -Timeout $Timeout -Server $ServerIPAddress -NoReceive:$NoReceive -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $DhcpPacket -Timeout $Timeout -Server $ServerIPAddress -NoReceive:$NoReceive -LongPoll:$LongPoll -NoXidFilter:$NoXidFilter
 }
 
 function New-DhcpPacket {

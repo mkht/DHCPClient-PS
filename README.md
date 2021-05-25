@@ -79,6 +79,9 @@ Default: 10
 * **`-LongPoll`**  [switch]  
 By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
 
+* **`-NoXidFilter`**  [switch]  
+By default, when the transaction ID of a received packet does not match the ID of an sent packet, it is discarded. If this switch is specified, packets whose IDs do not match will also be output.
+
 #### Outputs
 [DhcpPacket](#About-DhcpPacket-class) object
 
@@ -138,6 +141,9 @@ Default: 10
 
 * **`-LongPoll`**  [switch]  
 By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
+
+* **`-NoXidFilter`**  [switch]  
+By default, when the transaction ID of a received packet does not match the ID of an sent packet, it is discarded. If this switch is specified, packets whose IDs do not match will also be output.
 
 #### Outputs
 [DhcpPacket](#About-DhcpPacket-class) object
@@ -201,6 +207,12 @@ Default: `False`
 * **`-Timeout`**  [byte]  
 Specifies how long seconds to wait until a response is received.  
 Default: 10
+
+* **`-LongPoll`**  [switch]  
+By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
+
+* **`-NoXidFilter`**  [switch]  
+By default, when the transaction ID of a received packet does not match the ID of an sent packet, it is discarded. If this switch is specified, packets whose IDs do not match will also be output.
 
 #### Outputs
 [DhcpPacket](#About-DhcpPacket-class) object
@@ -280,6 +292,9 @@ Default: 10
 
 * **`-LongPoll`**  [switch]  
 By default, only the first response received will output. If this switch is specified, it will wait until the timeout period and output all responses received. This is useful to check whether there are multiple DHCP servers in a subnet.
+
+* **`-NoXidFilter`**  [switch]  
+By default, when the transaction ID of a received packet does not match the ID of an sent packet, it is discarded. If this switch is specified, packets whose IDs do not match will also be output.
 
 * **`-NoReceive`**  [switch]  
 If this switch is specified, this function will only send a message and not trying to receive any response.
@@ -406,6 +421,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 ## Change log
 + **Unreleased**
   - Add `-TransactionId` parameter.
+  - Changed to discard received packets that do not match the transaction ID. If you want to receive all packets, use the new `-NoXidFilter` switch parameter.
 
 + **2.0.1**
   - Fix minor issue.

@@ -1,4 +1,4 @@
-﻿using namespace System.Net.Sockets
+using namespace System.Net.Sockets
 
 using module '.\Class\Enums.psm1'
 using module '.\Class\DhcpOptionObject.psm1'
@@ -13,8 +13,7 @@ function Send-DhcpPacket {
     [OutputType([DhcpPacket])]
     param (
         [Parameter(Mandatory = $true)]
-        [ValidateCount(240, 1500)]
-        [byte[]]$Packet,
+        [DhcpPacket]$Packet,
 
         [Parameter()]
         [ValidateNotNull()]
@@ -55,8 +54,10 @@ function Send-DhcpPacket {
         $UdpClient.Client.Bind($ClientEndPoint)
 
         # Send the packet
-        $BytesSent = $UdpClient.Send($Packet, $Packet.Length, $ServerEndPoint)
+        $PacketBytes = $Packet.GetPacketBytes()
+        $BytesSent = $UdpClient.Send($PacketBytes, $PacketBytes.Length, $ServerEndPoint)
         Write-Verbose ('{0} bytes packet was sent to {1}.' -f $BytesSent, $ServerEndPoint.ToString())
+        Write-Verbose ('MsgType:{0} | XID:{1} | MacAddr:{2}' -f $Packet.MessageType, $Packet.XID, $Packet.CHAddr)
 
         # Receive
         if (-not $NoReceive) {
@@ -122,6 +123,11 @@ function Invoke-DhcpDiscover {
         [ValidateNotNull()]
         [ipaddress]$RequestIPAddress,
 
+        # Transaction-ID (option)
+        [Parameter()]
+        [ValidateCount(4, 4)]
+        [byte[]]$TransactionId,
+
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -151,6 +157,10 @@ function Invoke-DhcpDiscover {
         $Discover.RequestedIPAddress = $RequestIPAddress
     }
 
+    if ($PSBoundParameters.ContainsKey('TransactionId')) {
+        $Discover.XID = $TransactionId
+    }
+
     if ($PSBoundParameters.ContainsKey('ParameterRequestList')) {
         $Discover.ParameterRequestList = $ParameterRequestList
     }
@@ -168,8 +178,7 @@ function Invoke-DhcpDiscover {
     Write-Verbose ('MsgType:{0} | ClientMAC:{1}' -f `
             $Discover.MessageType, ($Discover.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    $Message = $Discover.GetPacketBytes()
-    Send-DhcpPacket -Packet $Message -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $Discover -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll
 }
 
 function Invoke-DhcpInform {
@@ -195,6 +204,11 @@ function Invoke-DhcpInform {
         [Parameter(ParameterSetName = 'Property')]
         [ValidateNotNull()]
         [ipaddress]$ServerIPAddress = [ipaddress]::Any,
+
+        # Transaction-ID (option)
+        [Parameter()]
+        [ValidateCount(4, 4)]
+        [byte[]]$TransactionId,
 
         # Client-identifier (option)
         [Parameter()]
@@ -237,6 +251,10 @@ function Invoke-DhcpInform {
 
     $Inform.BroadcastFlag = $BroadcastFlag
 
+    if ($PSBoundParameters.ContainsKey('TransactionId')) {
+        $Inform.XID = $TransactionId
+    }
+
     if ($PSBoundParameters.ContainsKey('ClientId')) {
         $Inform.AddDhcpOptions(
             [DhcpOptionObject]::new(
@@ -261,8 +279,7 @@ function Invoke-DhcpInform {
         $SendTo = $ServerIPAddress
     }
 
-    $Message = $Inform.GetPacketBytes()
-    Send-DhcpPacket -Packet $Message -Timeout $Timeout -Server $SendTo -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $Inform -Timeout $Timeout -Server $SendTo -LongPoll:$LongPoll
 }
 
 function Invoke-DhcpRequest {
@@ -288,6 +305,11 @@ function Invoke-DhcpRequest {
         [Parameter(Mandatory = $true, ParameterSetName = 'Property')]
         [ValidateNotNull()]
         [ipaddress]$ServerIPAddress,
+
+        # Transaction-ID (option)
+        [Parameter()]
+        [ValidateCount(4, 4)]
+        [byte[]]$TransactionId,
 
         # Client-identifier (option)
         [Parameter()]
@@ -321,6 +343,10 @@ function Invoke-DhcpRequest {
 
     $Request.BroadcastFlag = $BroadcastFlag
 
+    if ($PSBoundParameters.ContainsKey('TransactionId')) {
+        $Request.XID = $TransactionId
+    }
+
     if ($PSBoundParameters.ContainsKey('ClientId')) {
         $Request.AddDhcpOptions(
             [DhcpOptionObject]::new(
@@ -338,8 +364,7 @@ function Invoke-DhcpRequest {
     Write-Verbose ('MsgType:{0} | RequestIP:{1} | ServerIP:{2} | ClientMAC:{3}' -f `
             $Request.MessageType, $Request.RequestedIPAddress, $Request.ServerIPAddress, ($Request.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    $Message = $Request.GetPacketBytes()
-    Send-DhcpPacket -Packet $Message -Timeout $Timeout -Server ([IPAddress]::Broadcast)
+    Send-DhcpPacket -Packet $Request -Timeout $Timeout -Server ([IPAddress]::Broadcast) -LongPoll:$LongPoll
 }
 
 function Invoke-DhcpRelease {
@@ -366,6 +391,11 @@ function Invoke-DhcpRelease {
         [ValidateNotNull()]
         [ipaddress]$ServerIPAddress,
 
+        # Transaction-ID (option)
+        [Parameter()]
+        [ValidateCount(4, 4)]
+        [byte[]]$TransactionId,
+
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -386,6 +416,10 @@ function Invoke-DhcpRelease {
         $Release = [DhcpReleasePacket]::new($ClientIPAddress, $ServerIPAddress, $_MacAddress)
     }
 
+    if ($PSBoundParameters.ContainsKey('TransactionId')) {
+        $Release.XID = $TransactionId
+    }
+
     if ($PSBoundParameters.ContainsKey('ClientId')) {
         $Release.AddDhcpOptions(
             [DhcpOptionObject]::new(
@@ -399,8 +433,7 @@ function Invoke-DhcpRelease {
     Write-Verbose ('MsgType:{0} | ClientIP:{1} | ServerIP:{2} | ClientMAC:{3}' -f `
             $Release.MessageType, $Release.ClientIPAddress, $Release.ServerIPAddress, ($Release.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    $Message = $Release.GetPacketBytes()
-    Send-DhcpPacket -Packet $Message -Server $ServerIPAddress -NoReceive
+    Send-DhcpPacket -Packet $Release -Server $ServerIPAddress -NoReceive
 }
 
 
@@ -432,8 +465,7 @@ function Invoke-DhcpCustomMessage {
     Write-Verbose ('MsgType:{0} | ClientMAC:{1}' -f `
             $DhcpPacket.MessageType, ($DhcpPacket.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    $Message = $DhcpPacket.GetPacketBytes()
-    Send-DhcpPacket -Packet $Message -Timeout $Timeout -Server $ServerIPAddress -NoReceive:$NoReceive -LongPoll:$LongPoll
+    Send-DhcpPacket -Packet $DhcpPacket -Timeout $Timeout -Server $ServerIPAddress -NoReceive:$NoReceive -LongPoll:$LongPoll
 }
 
 function New-DhcpPacket {
@@ -595,6 +627,18 @@ function Read-DhcpPacket {
         Write-Error -Exception $_.Exception
     }
     return $DhcpResponse
+}
+
+function IsXidEqual {
+    param (
+        [byte[]]$First,
+        [byte[]]$Second
+    )
+    if ($First.Count -ne 4) { return $false }
+    if ($Second.Count -ne 4) { return $false }
+    [UInt32]$FirstInt = [System.BitConverter]::ToUInt32($First, 0)
+    [UInt32]$SecondInt = [System.BitConverter]::ToUInt32($Second, 0)
+    return ($FirstInt -eq $SecondInt)
 }
 
 function Set-REUSEADDR {

@@ -53,6 +53,11 @@ Default: `AA-BB-CC-DD-EE-FF`
 Specifies IP address that the client requests to be assigned.  
 This is corresponding to DHCP [option 50](https://tools.ietf.org/html/rfc2132#section-9.1).
 
+* **`-TransactionId`**  [byte[]]  
+Specifies the Transaction ID value.  
+The value should be 4-bytes array.  
+Default: a random number
+
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
@@ -107,6 +112,11 @@ This is mandatory parameter.
 * **`-ServerIPAddress`**  [IPAddress]  
 Specifies DHCP server address.  
 Default: `0.0.0.0` (Any)
+
+* **`-TransactionId`**  [byte[]]  
+Specifies the Transaction ID value.  
+The value should be 4-bytes array.  
+Default: a random number
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
@@ -169,6 +179,11 @@ Specifies DHCP server address.
 This is corresponding to DHCP [option 54](https://tools.ietf.org/html/rfc2132#section-9.7).  
 This is mandatory parameter.
 
+* **`-TransactionId`**  [byte[]]  
+Specifies the Transaction ID value.  
+The value should be 4-bytes array.  
+Default: a random number
+
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
@@ -218,6 +233,11 @@ This is mandatory parameter.
 * **`-ServerIPAddress`**  [IPAddress]  
 Specifies DHCP server address.  
 This is mandatory parameter.
+
+* **`-TransactionId`**  [byte[]]  
+Specifies the Transaction ID value.  
+The value should be 4-bytes array.  
+Default: a random number
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
@@ -384,6 +404,9 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **Unreleased**
+  - Add `-TransactionId` parameter.
+
 + **2.0.1**
   - Fix minor issue.
 

@@ -419,7 +419,7 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
-+ **Unreleased**
++ **2.1.0**
   - Add `-TransactionId` parameter.
   - Changed to discard received packets that do not match the transaction ID. If you want to receive all packets, use the new `-NoXidFilter` switch parameter.
 

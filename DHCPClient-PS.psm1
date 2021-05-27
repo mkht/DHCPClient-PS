@@ -87,7 +87,7 @@ function Send-DhcpPacket {
                         Write-Verbose ('[{0}] It is not valid DHCP packet. Ignored.' -f $PIdx)
                     }
                 }
-                if ((-not $LongPoll) -or ($PacketReceived -gt 10)) { break }
+                if ((-not $LongPoll) -and ($PacketReceived -ge 1)) { break }
                 Start-Sleep -Milliseconds 500
             }
         }
@@ -660,8 +660,14 @@ function IsXidEqual {
     )
     if ($First.Count -ne 4) { return $false }
     if ($Second.Count -ne 4) { return $false }
-    [UInt32]$FirstInt = [System.BitConverter]::ToUInt32($First, 0)
-    [UInt32]$SecondInt = [System.BitConverter]::ToUInt32($Second, 0)
+    try {
+        [UInt32]$FirstInt = [System.BitConverter]::ToUInt32($First, 0)
+        [UInt32]$SecondInt = [System.BitConverter]::ToUInt32($Second, 0)
+    }
+    catch {
+        Write-Error -Exception $_.Exception
+        return $false
+    }
     return ($FirstInt -eq $SecondInt)
 }
 

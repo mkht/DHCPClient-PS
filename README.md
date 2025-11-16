@@ -67,9 +67,10 @@ Default: not set
 Specifies the client-identifier value.  
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
-  > [!NOTE]
-  > When specifying the ClientId parameter, should include the type byte at the beginning of the value.  
-  > For example, if the client identifier type is Ethernet (type 0x01), and the MAC address is `AA-BB-CC-DD-EE-FF`, you should set the ClientId parameter to `(0x01, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF)`.
+
+> [!NOTE]
+> When specifying the ClientId parameter, should include the type byte at the beginning of the value.  
+> For example, if the client identifier type is Ethernet (type 0x01), and the MAC address is `AA-BB-CC-DD-EE-FF`, you should set the ClientId parameter to `(0x01, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF)`.
 
 * **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
@@ -479,3 +480,4 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 + **1.0.0**
   - First public release
+

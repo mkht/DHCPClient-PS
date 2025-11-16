@@ -28,8 +28,7 @@ class DhcpInformPacket : DhcpPacket {
         $this.AddDhcpOptions(@(
                 [DhcpOptionObject]::new([DhcpOption]::DHCPMessageType, [DhcpMessageType]::DHCPINFORM),
                 [DhcpOptionObject]::new([DhcpOption]::ServerId, $this.ServerIPAddress.GetAddressBytes()),
-                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList),
-                [DhcpOptionObject]::new([DhcpOption]::End, $null)
+                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList)
             ))
     }
 
@@ -40,8 +39,7 @@ class DhcpInformPacket : DhcpPacket {
         $this.CHAddr = $MacAddress
         $this.AddDhcpOptions(@(
                 [DhcpOptionObject]::new([DhcpOption]::DHCPMessageType, [DhcpMessageType]::DHCPINFORM),
-                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList),
-                [DhcpOptionObject]::new([DhcpOption]::End, $null)
+                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList)
             ))
     }
 

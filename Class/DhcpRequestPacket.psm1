@@ -28,8 +28,7 @@ class DhcpRequestPacket : DhcpPacket {
                 [DhcpOptionObject]::new([DhcpOption]::DHCPMessageType, [DhcpMessageType]::DHCPREQUEST),
                 [DhcpOptionObject]::new([DhcpOption]::RequestedIPAddress, $this.RequestedIPAddress.GetAddressBytes()),
                 [DhcpOptionObject]::new([DhcpOption]::ServerId, $this.ServerIPAddress.GetAddressBytes()),
-                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList),
-                [DhcpOptionObject]::new([DhcpOption]::End, $null)
+                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList)
             ))
     }
 

@@ -24,8 +24,7 @@ class DhcpDiscoverPacket : DhcpPacket {
         $this.AddDhcpOptions(@(
                 [DhcpOptionObject]::new([DhcpOption]::DHCPMessageType, [DhcpMessageType]::DHCPDISCOVER),
                 [DhcpOptionObject]::new([DhcpOption]::RequestedIPAddress, $this.RequestedIPAddress.GetAddressBytes()),
-                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList),
-                [DhcpOptionObject]::new([DhcpOption]::End, $null)
+                [DhcpOptionObject]::new([DhcpOption]::ParameterRequestList, $this.ParameterRequestList)
             ))
     }
 

@@ -15,8 +15,7 @@ class DhcpReleasePacket : DhcpPacket {
         $this.CIAddr = $this.ClientIPAddress
         $this.AddDhcpOptions(@(
                 [DhcpOptionObject]::new([DhcpOption]::DHCPMessageType, [DhcpMessageType]::DHCPRELEASE),
-                [DhcpOptionObject]::new([DhcpOption]::ServerId, $this.ServerIPAddress.GetAddressBytes()),
-                [DhcpOptionObject]::new([DhcpOption]::End, $null)
+                [DhcpOptionObject]::new([DhcpOption]::ServerId, $this.ServerIPAddress.GetAddressBytes())
             ))
     }
 

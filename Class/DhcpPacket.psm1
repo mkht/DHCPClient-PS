@@ -91,7 +91,7 @@ class DhcpPacket {
     [string]$File = ''
     [byte[]]$MagicCookie = [byte[]](0x63, 0x82, 0x53, 0x63)
 
-    Hidden [System.Collections.Specialized.OrderedDictionary]$_DhcpOptionsList = [System.Collections.Specialized.OrderedDictionary]::new()
+    hidden [System.Collections.Specialized.OrderedDictionary]$_DhcpOptionsList = [System.Collections.Specialized.OrderedDictionary]::new()
 
     DhcpPacket() {
         # Options property (Read-only)
@@ -116,7 +116,7 @@ class DhcpPacket {
             # Getter
             [bool]($this.Flags -eq 128)
         } {
-            Param([bool]$flag)
+            param([bool]$flag)
             # Setter
             if ($flag) { $this.Flags = 128 }else { $this.Flags = 0 }
         }
@@ -133,6 +133,12 @@ class DhcpPacket {
                 $this._DhcpOptionsList[[byte]$op.OptionCode]._Value += $op._Value
             }
         }
+
+        # Ensure End option is last
+        if ($this._DhcpOptionsList.Contains([byte][DhcpOption]::End)) {
+            $this._DhcpOptionsList.Remove([byte][DhcpOption]::End)
+        }
+        $this._DhcpOptionsList.Add([byte][DhcpOption]::End, [DhcpOptionObject]::new([DhcpOption]::End, $null))
     }
 
     [void]AddDhcpOptions([DhcpOptionObject[]]$Options) {
@@ -255,15 +261,15 @@ class DhcpPacket {
         $ByteArray.AddRange($this.MagicCookie)
 
         # Options
-        $HasEnd = ($this._DhcpOptionsList.keys -eq [DhcpOption]::End)
+        $HasEnd = ($this._DhcpOptionsList.Contains([byte][DhcpOption]::End))
         foreach ($option in $this._DhcpOptionsList.Values) {
-            if (($option -is [DhcpOptionObject]) -and ($option.OptionCode -ne [DhcpOption]::End)) {
+            if ($option -is [DhcpOptionObject]) {
                 $ByteArray.AddRange($option.GetBytes())
             }
         }
 
         # End
-        if ($HasEnd) {
+        if (-not $HasEnd) {
             $End = [DhcpOptionObject]::new([DhcpOption]::End, $null)
             $ByteArray.AddRange($End.GetBytes())
         }

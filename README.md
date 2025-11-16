@@ -12,7 +12,7 @@ Install-Module -Name DHCPClient-PS
 ```
 
 ## Platforms
-+ Windows PowerShell 5.0 and 5.1
++ Windows PowerShell 5.1
 + PowerShell 7.0 and above (Windows, macOS and Linux)
 
 ## Usage
@@ -33,7 +33,7 @@ Send DHCP Discover message, then receive Offer messages from DHCP server(s).
 When you run this function without any parameters, it sends a message with the default MAC address (`AA-BB-CC-DD-EE-FF`) and receive a fastest offer response.
 
 ```PowerShell
-PS> $Response = Invoke-DhcpDiscover
+PS> $Response = Invoke-DhcpDiscover -MacAddress AABBCCDDEEFF
 PS> $Response | Select-Object MessageType, YIAddr, SIAddr, CHAddr, Options
 
 MessageType : DHCPOFFER
@@ -447,6 +447,10 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **2.2.0**
+  - Add `-VendorClassId` parameter.
+  - Fix minor issues.
+
 + **2.1.0**
   - Add `-TransactionId` parameter.
   - Changed to discard received packets that do not match the transaction ID. If you want to receive all packets, use the new `-NoXidFilter` switch parameter.

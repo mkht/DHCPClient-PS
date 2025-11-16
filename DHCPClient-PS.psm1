@@ -137,6 +137,11 @@ function Invoke-DhcpDiscover {
         [ValidateCount(4, 4)]
         [byte[]]$TransactionId,
 
+        # Vendor-class-identifier (option)
+        [Parameter()]
+        [AllowEmptyString()]
+        [string]$VendorClassId,
+
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -175,6 +180,15 @@ function Invoke-DhcpDiscover {
 
     if ($PSBoundParameters.ContainsKey('ParameterRequestList')) {
         $Discover.ParameterRequestList = $ParameterRequestList
+    }
+
+    if ($PSBoundParameters.ContainsKey('VendorClassId')) {
+        $Discover.AddDhcpOptions(
+            [DhcpOptionObject]::new(
+                [DhcpOption]::ClassId,
+                [System.Text.Encoding]::UTF8.GetBytes($VendorClassId)
+            )
+        )
     }
 
     if ($PSBoundParameters.ContainsKey('ClientId')) {
@@ -222,6 +236,11 @@ function Invoke-DhcpInform {
         [ValidateCount(4, 4)]
         [byte[]]$TransactionId,
 
+        # Vendor-class-identifier (option)
+        [Parameter()]
+        [AllowEmptyString()]
+        [string]$VendorClassId,
+
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -268,6 +287,15 @@ function Invoke-DhcpInform {
 
     if ($PSBoundParameters.ContainsKey('TransactionId')) {
         $Inform.XID = $TransactionId
+    }
+
+    if ($PSBoundParameters.ContainsKey('VendorClassId')) {
+        $Inform.AddDhcpOptions(
+            [DhcpOptionObject]::new(
+                [DhcpOption]::ClassId,
+                [System.Text.Encoding]::UTF8.GetBytes($VendorClassId)
+            )
+        )
     }
 
     if ($PSBoundParameters.ContainsKey('ClientId')) {
@@ -326,6 +354,11 @@ function Invoke-DhcpRequest {
         [ValidateCount(4, 4)]
         [byte[]]$TransactionId,
 
+        # Vendor-class-identifier (option)
+        [Parameter()]
+        [AllowEmptyString()]
+        [string]$VendorClassId,
+
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -366,6 +399,15 @@ function Invoke-DhcpRequest {
 
     if ($PSBoundParameters.ContainsKey('TransactionId')) {
         $Request.XID = $TransactionId
+    }
+
+    if ($PSBoundParameters.ContainsKey('VendorClassId')) {
+        $Request.AddDhcpOptions(
+            [DhcpOptionObject]::new(
+                [DhcpOption]::ClassId,
+                [System.Text.Encoding]::UTF8.GetBytes($VendorClassId)
+            )
+        )
     }
 
     if ($PSBoundParameters.ContainsKey('ClientId')) {
@@ -417,6 +459,11 @@ function Invoke-DhcpRelease {
         [ValidateCount(4, 4)]
         [byte[]]$TransactionId,
 
+        # Vendor-class-identifier (option)
+        [Parameter()]
+        [AllowEmptyString()]
+        [string]$VendorClassId,
+
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -439,6 +486,15 @@ function Invoke-DhcpRelease {
 
     if ($PSBoundParameters.ContainsKey('TransactionId')) {
         $Release.XID = $TransactionId
+    }
+
+    if ($PSBoundParameters.ContainsKey('VendorClassId')) {
+        $Release.AddDhcpOptions(
+            [DhcpOptionObject]::new(
+                [DhcpOption]::ClassId,
+                [System.Text.Encoding]::UTF8.GetBytes($VendorClassId)
+            )
+        )
     }
 
     if ($PSBoundParameters.ContainsKey('ClientId')) {
@@ -495,7 +551,7 @@ function Invoke-DhcpCustomMessage {
 function New-DhcpPacket {
     [CmdletBinding()]
     [OutputType([DhcpPacket])]
-    Param(
+    param(
         [Parameter(Mandatory, ValueFromPipelineByPropertyName)]
         [ValidateSet(
             'DHCPDISCOVER', 'DHCPOFFER', 'DHCPREQUEST',
@@ -515,6 +571,10 @@ function New-DhcpPacket {
         [Parameter(ValueFromPipelineByPropertyName)]
         [ValidateNotNull()]
         [ipaddress]$ServerIPAddress = [ipaddress]::Any,
+
+        [Parameter(ValueFromPipelineByPropertyName)]
+        [AllowEmptyString()]
+        [string]$VendorClassId,
 
         [Parameter(ValueFromPipelineByPropertyName)]
         [ValidateNotNullOrEmpty()]
@@ -555,9 +615,14 @@ function New-DhcpPacket {
         $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ServerId, $ServerIPAddress.GetAddressBytes()))
     }
 
+    # Vendor class ID
+    if ($PSBoundParameters.ContainsKey('VendorClassId')) {
+        $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ClassId, [System.Text.Encoding]::UTF8.GetBytes($VendorClassId)))
+    }
+
     # Client ID
     if ($PSBoundParameters.ContainsKey('ClientId')) {
-        $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ClientId, (([byte[]]0x00) + $ClientId)))
+        $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::ClientId, ($ClientId)))
     }
 
     # Parameter request list
@@ -566,6 +631,28 @@ function New-DhcpPacket {
     }
 
     # Options
+    $DhcpOptionObjects = ConvertTo-DhcpOptions -Options $Options
+    try {
+        $DhcpPacket.AddDhcpOptions($DhcpOptionObjects)
+    }
+    catch {
+        Write-Error -Exception $_.Exception
+    }
+
+    return $DhcpPacket
+}
+
+function ConvertTo-DhcpOptions {
+    [CmdletBinding()]
+    [OutputType([DhcpOptionObject[]])]
+    param (
+        [Parameter(Mandatory, Position = 0)]
+        [ValidateNotNull()]
+        [System.Collections.IDictionary]$Options
+    )
+
+    $DhcpOptionObjects = @()
+
     $KeyArray = $Options.Keys.ForEach( { $_ })
     $ValueArray = [Object[]]::new($Options.Values.Count)
     $Options.Values.CopyTo($ValueArray, 0)
@@ -623,20 +710,11 @@ function New-DhcpPacket {
         }
         else { continue }
 
-        try {
-            $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new($KeyArray[$i], $ValueObject))
-        }
-        catch {
-            Write-Error -Exception $_.Exception
-        }
+        $DhcpOptionObjects += [DhcpOptionObject]::new($KeyArray[$i], $ValueObject)
     }
 
-    # End flag
-    $DhcpPacket.AddDhcpOptions([DhcpOptionObject]::new([DhcpOption]::End, $null))
-
-    return $DhcpPacket
+    return $DhcpOptionObjects
 }
-
 
 function Read-DhcpPacket {
     param (

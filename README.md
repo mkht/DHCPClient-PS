@@ -58,10 +58,18 @@ Specifies the Transaction ID value.
 The value should be 4-bytes array.  
 Default: a random number
 
+* **`-VendorClassId`**  [string]  
+Specifies the vendor-class-identifier value.  
+This is corresponding to DHCP [option 60](https://tools.ietf.org/html/rfc2132#section-9.13).  
+Default: not set
+
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
+  > [!NOTE]
+  > When specifying the ClientId parameter, should include the type byte at the beginning of the value.  
+  > For example, if the client identifier type is Ethernet (type 0x01), and the MAC address is `AA-BB-CC-DD-EE-FF`, you should set the ClientId parameter to `(0x01, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF)`.
 
 * **`-ParameterRequestList`**  [byte[]]  
 Specifies request values for configuration parameters.  
@@ -120,6 +128,11 @@ Default: `0.0.0.0` (Any)
 Specifies the Transaction ID value.  
 The value should be 4-bytes array.  
 Default: a random number
+
+* **`-VendorClassId`**  [string]  
+Specifies the vendor-class-identifier value.  
+This is corresponding to DHCP [option 60](https://tools.ietf.org/html/rfc2132#section-9.13).  
+Default: not set
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
@@ -190,6 +203,11 @@ Specifies the Transaction ID value.
 The value should be 4-bytes array.  
 Default: a random number
 
+* **`-VendorClassId`**  [string]  
+Specifies the vendor-class-identifier value.  
+This is corresponding to DHCP [option 60](https://tools.ietf.org/html/rfc2132#section-9.13).  
+Default: not set
+
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
@@ -250,6 +268,11 @@ This is mandatory parameter.
 Specifies the Transaction ID value.  
 The value should be 4-bytes array.  
 Default: a random number
+
+* **`-VendorClassId`**  [string]  
+Specifies the vendor-class-identifier value.  
+This is corresponding to DHCP [option 60](https://tools.ietf.org/html/rfc2132#section-9.13).  
+Default: not set
 
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
@@ -357,6 +380,11 @@ Default: `AA-BB-CC-DD-EE-FF`
 Specifies DHCP server address.  
 Default: `0.0.0.0` (Any address)
 
+* **`-VendorClassId`**  [string]  
+Specifies the vendor-class-identifier value.  
+This is corresponding to DHCP [option 60](https://tools.ietf.org/html/rfc2132#section-9.13).  
+Default: not set
+
 * **`-ClientId`**  [byte[]]  
 Specifies the client-identifier value.  
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
@@ -389,33 +417,33 @@ This class is not published as public. You should create instance by `New-DhcpPa
 #### Members
 Most of the members correspond to the structure of a DHCP packet. See [RFC 2131](https://tools.ietf.org/html/rfc2131) for details.
 
-|Name|Type|Description|
-|:----|:----|:----|
-|OpCode|[byte]|Message op code|
-|HType|[byte]|Hardware address type|
-|HLen|[byte]|Hardware address type|
-|Hops|[byte]|Normally client sets to zero.|
-|XID|[byte[]]|Transaction ID|
-|Secs|[Uint16]|Seconds elapsed since client began address acquisition or renewal process.|
-|Flags|[Uint16]|Flags|
-|CIAddr|[ipaddress]|Client IP address|
-|YIAddr|[ipaddress]|'your' (client) IP address|
-|SIAddr|[ipaddress]|IP address of next server to use in bootstrap.|
-|GIAddr|[ipaddress]|Relay agent IP address|
-|CHAddr|[PhysicalAddress]|Client hardware address|
-|SName|[string]|Optional server host name|
-|File|[string]|Boot file name|
-|MagicCookie|[byte[]]|Magic cookie, Should be `0x63, 0x82, 0x53, 0x63`|
-|MessageType|[byte]|DHCP Message type|
-|Options|[Dictionary]|DHCP Configuration Options (Read-only).|
-|BroadcastFlag|[bool]|Flag to request a broadcast response from the server.|
+| Name          | Type              | Description                                                                |
+| :------------ | :---------------- | :------------------------------------------------------------------------- |
+| OpCode        | [byte]            | Message op code                                                            |
+| HType         | [byte]            | Hardware address type                                                      |
+| HLen          | [byte]            | Hardware address type                                                      |
+| Hops          | [byte]            | Normally client sets to zero.                                              |
+| XID           | [byte[]]          | Transaction ID                                                             |
+| Secs          | [Uint16]          | Seconds elapsed since client began address acquisition or renewal process. |
+| Flags         | [Uint16]          | Flags                                                                      |
+| CIAddr        | [ipaddress]       | Client IP address                                                          |
+| YIAddr        | [ipaddress]       | 'your' (client) IP address                                                 |
+| SIAddr        | [ipaddress]       | IP address of next server to use in bootstrap.                             |
+| GIAddr        | [ipaddress]       | Relay agent IP address                                                     |
+| CHAddr        | [PhysicalAddress] | Client hardware address                                                    |
+| SName         | [string]          | Optional server host name                                                  |
+| File          | [string]          | Boot file name                                                             |
+| MagicCookie   | [byte[]]          | Magic cookie, Should be `0x63, 0x82, 0x53, 0x63`                           |
+| MessageType   | [byte]            | DHCP Message type                                                          |
+| Options       | [Dictionary]      | DHCP Configuration Options (Read-only).                                    |
+| BroadcastFlag | [bool]            | Flag to request a broadcast response from the server.                      |
 
 #### Methods
-|Name|Return type|Description|
-|:----|:----|:----|
-|AddDhcpOption(byte, byte[])|[void]|Add DHCP Option. 1st parameter is an option number, 2nd is value of bytes.|
-|RemoveDhcpOption(byte)|[bool]|Remove DHCP Option. parameter is an option number.|
-|GetPacketBytes()|[byte[]]|Returns raw bytes packet.|
+| Name                        | Return type | Description                                                                |
+| :-------------------------- | :---------- | :------------------------------------------------------------------------- |
+| AddDhcpOption(byte, byte[]) | [void]      | Add DHCP Option. 1st parameter is an option number, 2nd is value of bytes. |
+| RemoveDhcpOption(byte)      | [bool]      | Remove DHCP Option. parameter is an option number.                         |
+| GetPacketBytes()            | [byte[]]    | Returns raw bytes packet.                                                  |
 
 
 ## Change log

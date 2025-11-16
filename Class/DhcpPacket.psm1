@@ -125,6 +125,7 @@ class DhcpPacket {
     [void]AddDhcpOptions([DhcpOptionObject[]]$Options, [bool]$ConcatWhenExist) {
         foreach ($op in $Options) {
             if ($op -isnot [DhcpOptionObject]) { continue }
+            if ($op.OptionCode -eq [DhcpOption]::End) { continue }
 
             if ((-not $ConcatWhenExist) -or ([byte]$op.OptionCode -notin $this._DhcpOptionsList.Keys)) {
                 $this._DhcpOptionsList[[byte]$op.OptionCode] = $op

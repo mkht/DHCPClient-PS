@@ -775,6 +775,105 @@ public class SocketFix
     }
 }
 
+function Test-DhcpClient {
+    [CmdletBinding()]
+    param (
+        # Client MAC Address
+        [Parameter()]
+        [ValidateScript( { ($_.Trim().ToUpper() -replace '[\.:-]') -as [PhysicalAddress] })]
+        [string]$MacAddress = 'AABBCCDDEEFF',
+
+        # Request IP address (option)
+        [Parameter()]
+        [ValidateNotNull()]
+        [ipaddress]$RequestIPAddress,
+
+        # Transaction-ID (option)
+        [Parameter()]
+        [ValidateCount(4, 4)]
+        [byte[]]$TransactionId,
+
+        # Vendor-class-identifier (option)
+        [Parameter()]
+        [AllowEmptyString()]
+        [string]$VendorClassId,
+
+        # Client-identifier (option)
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        [byte[]]$ClientId,
+
+        # Parameter request list (option)
+        [Parameter()]
+        [byte[]]$ParameterRequestList,
+
+        [Parameter()]
+        [bool]$BroadcastFlag = $false,
+
+        [Parameter()]
+        [ValidateRange(1, 255)]
+        [byte]$Timeout = 10,
+
+        [Parameter()]
+        [switch]$NoXidFilter,
+
+        [Parameter()]
+        [switch]$ReleaseAfterTest
+    )
+
+    $ParameterList = [hashtable]$PSBoundParameters
+    $null = $ParameterList.Remove('ReleaseAfterTest')
+    if (-not $ParameterList.ContainsKey('MacAddress')) {
+        $ParameterList['MacAddress'] = $MacAddress
+    }
+
+    #region Send Discover / Receive Offer
+    Write-Host ('DHCP Discover sent          : Client MAC  = {0}' -f $MacAddress)
+    $OfferResponse = Invoke-DhcpDiscover @ParameterList | Select-Object -First 1
+    if ($OfferResponse.Count -eq 0) {
+        Write-Warning 'No DHCP Offer received.'
+        return $false
+    }
+    if ($OfferResponse.MessageType -ne [DhcpMessageType]::DHCPOFFER) {
+        Write-Warning ('Unexpected DHCP message type received: {0}' -f $OfferResponse.MessageType)
+        return $false
+    }
+    Write-Host ('DHCP Offer received         : Offered IP  = {0}, Server IP = {1}' -f $OfferResponse.YIAddr, $OfferResponse.SIAddr)
+    #endregion
+
+    #region Send Request / Receive Ack
+    Write-Host ('DHCP Request sent           : Request IP  = {0}, Server IP = {1}' -f $OfferResponse.YIAddr, $OfferResponse.SIAddr)
+    $AckResponse = Invoke-DhcpRequest @ParameterList -RequestIPAddress $OfferResponse.YIAddr -ServerIPAddress $OfferResponse.SIAddr | Select-Object -First 1
+    if ($AckResponse.Count -eq 0) {
+        Write-Warning 'No DHCP ACK received.'
+        return $false
+    }
+    if ($AckResponse.MessageType -ne [DhcpMessageType]::DHCPACK) {
+        Write-Warning ('Unexpected DHCP message type received: {0}' -f $AckResponse.MessageType)
+        return $false
+    }
+    Write-Host ('DHCP Ack received           : Assigned IP = {0}, Server IP = {1}' -f $AckResponse.YIAddr, $AckResponse.SIAddr)
+    #endregion
+
+    #region Send Release
+    if ($ReleaseAfterTest) {
+        $ReleaseParameterList = @{
+            MacAddress      = $MacAddress
+            ClientIPAddress = $AckResponse.YIAddr
+            ServerIPAddress = $AckResponse.SIAddr
+        }
+        if ($ParameterList.ContainsKey('ClientId')) {
+            $ReleaseParameterList['ClientId'] = $ParameterList['ClientId']
+        }
+        Write-Host ('DHCP Release sent           : Client IP   = {0}, Server IP = {1}' -f $AckResponse.YIAddr, $AckResponse.SIAddr)
+        Invoke-DhcpRelease @ReleaseParameterList
+    }
+    #endregion
+
+    return $true
+}
+
+
 Export-ModuleMember -Function @(
     'Invoke-DhcpDiscover'
     'Invoke-DhcpInform'
@@ -782,4 +881,5 @@ Export-ModuleMember -Function @(
     'Invoke-DhcpRelease'
     'Invoke-DhcpCustomMessage'
     'New-DhcpPacket'
+    'Test-DhcpClient'
 )

@@ -21,6 +21,7 @@ Install-Module -Name DHCPClient-PS
 - [Invoke-DhcpInform](#Invoke-DhcpInform)
 - [Invoke-DhcpRequest](#Invoke-DhcpRequest)
 - [Invoke-DhcpRelease](#Invoke-DhcpRelease)
+- [Test-DhcpClient](#Test-DhcpClient)
 - [Invoke-DhcpCustomMessage](#Invoke-DhcpCustomMessage)
 - [New-DhcpPacket](#New-DhcpPacket)
 - [About DhcpPacket class](#About-DhcpPacket-class)
@@ -270,6 +271,46 @@ Specifies the Transaction ID value.
 The value should be 4-bytes array.  
 Default: a random number
 
+* **`-ClientId`**  [byte[]]  
+Specifies the client-identifier value.  
+This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
+Default: The value of MAC address.
+
+#### Outputs
+This function does not output anything.
+
+----
+### Test-DhcpClient
+Perform a full DHCP client process: Discover => Request => Release
+
+#### Examples
+```PowerShell
+PS> $Result = Test-DhcpClient -MacAddress AABBCCDDEEFF
+DHCP Discover sent          : Client MAC  = AABBCCDDEEFF
+DHCP Offer received         : Offered IP  = 192.168.10.2, Server IP = 192.168.10.1
+DHCP Request sent           : Request IP  = 192.168.10.2, Server IP = 192.168.10.1
+DHCP Ack received           : Assigned IP = 192.168.10.2, Server IP = 0.0.0.0
+DHCP Release sent           : Client IP   = 192.168.10.2, Server IP = 0.0.0.0
+
+PS> $Result
+True
+```
+
+#### Parameters
+
+* **`-MacAddress`**  [string]  
+Specifies MAC address for the request.  
+Default: `AA-BB-CC-DD-EE-FF`
+
+* **`-RequestIPAddress`**  [IPAddress]  
+Specifies IP address that the client requests to be assigned.  
+This is corresponding to DHCP [option 50](https://tools.ietf.org/html/rfc2132#section-9.1).
+
+* **`-TransactionId`**  [byte[]]  
+Specifies the Transaction ID value.  
+The value should be 4-bytes array.  
+Default: a random number
+
 * **`-VendorClassId`**  [string]  
 Specifies the vendor-class-identifier value.  
 This is corresponding to DHCP [option 60](https://tools.ietf.org/html/rfc2132#section-9.13).  
@@ -280,8 +321,28 @@ Specifies the client-identifier value.
 This is corresponding to DHCP [option 61](https://tools.ietf.org/html/rfc2132#section-9.14).  
 Default: The value of MAC address.
 
+* **`-ParameterRequestList`**  [byte[]]  
+Specifies request values for configuration parameters.  
+This is corresponding to DHCP [option 55](https://tools.ietf.org/html/rfc2132#section-9.8).  
+Default: `1, 3, 4, 15, 31, 33, 42, 119, 252`
+
+* **`-BroadcastFlag`**  [bool]  
+Specifies the flag to request the server to broadcast a reply.  
+Default: `False`
+
+* **`-Timeout`**  [byte]  
+Specifies how long seconds to wait until a response is received.  
+Default: 10
+
+* **`-NoXidFilter`**  [switch]  
+By default, when the transaction ID of a received packet does not match the ID of an sent packet, it is discarded. If this switch is specified, packets whose IDs do not match will also be output.
+
+* **`-ReleaseAfterTest`**  [switch]  
+If this switch is specified, a DHCP Release message will be sent after receiving the DHCP Ack.
+Default: `False`
+
 #### Outputs
-This function does not output anything.
+This function returns `True` if the DHCP client process is completed successfully.  
 
 ----
 ### Invoke-DhcpCustomMessage
@@ -448,6 +509,11 @@ Most of the members correspond to the structure of a DHCP packet. See [RFC 2131]
 
 
 ## Change log
++ **2.3.0**
+  - Remove `-VendorClassId` parameter from `Invoke-DhcpRelease`. It was not compliant with RFCs.
+  - Add `Test-DhcpClient` function that performs a full DHCP client process (Discover => Request => Release).
+  - Fix minor issues.
+
 + **2.2.0**
   - Add `-VendorClassId` parameter.
   - Fix minor issues.

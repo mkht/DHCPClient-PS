@@ -459,11 +459,6 @@ function Invoke-DhcpRelease {
         [ValidateCount(4, 4)]
         [byte[]]$TransactionId,
 
-        # Vendor-class-identifier (option)
-        [Parameter()]
-        [AllowEmptyString()]
-        [string]$VendorClassId,
-
         # Client-identifier (option)
         [Parameter()]
         [ValidateNotNullOrEmpty()]
@@ -488,15 +483,6 @@ function Invoke-DhcpRelease {
         $Release.XID = $TransactionId
     }
 
-    if ($PSBoundParameters.ContainsKey('VendorClassId')) {
-        $Release.AddDhcpOptions(
-            [DhcpOptionObject]::new(
-                [DhcpOption]::ClassId,
-                [System.Text.Encoding]::UTF8.GetBytes($VendorClassId)
-            )
-        )
-    }
-
     if ($PSBoundParameters.ContainsKey('ClientId')) {
         $Release.AddDhcpOptions(
             [DhcpOptionObject]::new(
@@ -510,7 +496,14 @@ function Invoke-DhcpRelease {
     Write-Verbose ('MsgType:{0} | ClientIP:{1} | ServerIP:{2} | ClientMAC:{3}' -f `
             $Release.MessageType, $Release.ClientIPAddress, $Release.ServerIPAddress, ($Release.CHAddr.GetAddressBytes().ForEach( { $_.ToString('X2') }) -join '-'))
 
-    Send-DhcpPacket -Packet $Release -Server $ServerIPAddress -NoReceive
+    if ($ServerIPAddress -eq [ipaddress]::Any) {
+        $SendTo = [IPAddress]::Broadcast
+    }
+    else {
+        $SendTo = $ServerIPAddress
+    }
+
+    Send-DhcpPacket -Packet $Release -Server $SendTo -NoReceive
 }
 
 
